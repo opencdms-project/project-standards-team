@@ -1,7 +1,7 @@
 This repository contains data models for Climate and Hydrology Data Management Systems related to [OpenCDMS](http://opencdms.org)
 
 Information on other data models can be found below
-- [WIGOS](https://www.wmo.int/pages/prog/www/wigos/index_en.html)
+- <span title="WMO Integrated Global Observing System">[WIGOS](https://www.wmo.int/pages/prog/www/wigos/index_en.html)</span>
   <span title="WIGOS metadata representation">[WMDR]()</span>
   model and schemas on [GitHub](https://github.com/wmo-im/wmdr)
   and at [schemas.wmo.int](https://schemas.wmo.int/wmdr/),
