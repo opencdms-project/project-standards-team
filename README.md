@@ -14,4 +14,4 @@ Information on other data models can be found below
   <span title="Global Land and Marine Observations Database">[GLAMOD](https://climate.copernicus.eu/global-land-and-marine-observations-database-0)</span>
   **[Common Data Model](https://github.com/glamod/common_data_model)**
 
-- Consider also the [Geopackage specification](http://www.geopackage.org/spec121/index.html)an open, standards-based, platform-independent, portable, self-describing, compact file format for transferring geospatial information (GeoPackage implements a single portable database as opposed to [other alternatives](http://switchfromshapefile.org/))
+- Consider also the [Geopackage specification](http://www.geopackage.org/spec121/index.html) an open, standards-based, platform-independent, portable, self-describing, compact file format for transferring geospatial information (GeoPackage implements a single portable database as opposed to [other alternatives](http://switchfromshapefile.org/))
