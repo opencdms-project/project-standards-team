@@ -1,0 +1,40 @@
+$STORAGE:2
+C
+      SUBROUTINE CHKPOS(NUMELEM,NUMLINE,IELEM,ILINE)
+C
+C  THIS ROUTINE CHEKS THE ELEMENT AND LINE NUMBERS AND MAKES
+C  THE PROPER ADJUSTMENTS IF THEY ARE OUT OF BOUNDS.
+C
+      INTEGER*2 NUMELEM,NUMLINE,IELEM,ILINE
+C
+C   ADJUST IELEM AND ILINE IF OUTSIDE FORM LIMITS
+C
+      IF (IELEM.GT.NUMELEM) THEN
+         IF (ILINE.LT.NUMLINE) THEN
+            IELEM = 1
+            ILINE = ILINE + 1
+         ELSE
+            IELEM = NUMELEM
+            ILINE = NUMLINE
+            RETURN
+         END IF
+      ELSE IF (IELEM.LE.0) THEN
+         IF (ILINE.GT.1) THEN
+            IELEM = NUMELEM
+            ILINE = ILINE - 1
+         ELSE
+            IELEM = 1
+            ILINE = 1
+            RETURN
+         END IF 
+      END IF
+     
+      IF (ILINE.GT.NUMLINE) THEN
+         ILINE = NUMLINE
+      ELSE IF (ILINE.LT.1) THEN
+         ILINE = 1
+      END IF 
+C
+      RETURN
+      END
+
