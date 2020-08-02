@@ -1,5 +1,9 @@
+## obs_daily
+**Daily surface observations**
+
 | Column name | Description |
 |-------------|-------------|
+|id|\<auto increment\>|
 |station_no|Local Station identifier|
 |lsd|Local System Time (No Daylight Savings)|
 |data_source|Code for data source (DATA_SRC)|
