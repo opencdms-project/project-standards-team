@@ -1,5 +1,71 @@
+## Tables
 
-### MCHtablasycampos.def
+| Table names | Description |
+|-------------|-------------|
+|Codes||
+|Basins||
+|Definiclineascontorno||
+|DisponibDD||
+|Estacautoma||
+|stations||
+|estacionesinstrum||
+|metadatastations||
+|states||
+|Ftpbitacproc||
+|regManager||
+|StationGroups||
+|TimeZones||
+|Isolinbitac||
+|Logbitacproc||
+|Maps||
+|MapasCroquis||
+|mapsstations||
+|MapasGenxCoord||
+|mapsgroups||
+|MapasMchxCoord||
+|Mapaspixelgeogr||
+|Mapaspixelgeogr4||
+|mapasbycoord||
+|Mapasxcoordclrs||
+|Mapasxcoordgeogr||
+|Mapasxcoordzonas||
+|MensajesMetar||
+|MensajesSynop||
+|Counties||
+|Opcionesmapasintxxnet||
+|Opcxvariabautom||
+|DataSources||
+|Recepdefs||
+|Recepsdatos||
+|Recepsping||
+|Hydrregions||
+|subbasins||
+|synopcrexdatos||
+|synopcrexplant||
+|TransfTables||
+|Tablaswebconst||
+|Tablaswebdef||
+|tipoEstacionVariable||
+|Transftp||
+|Transmchamch||
+|Units||
+|users||
+|typeusers||
+|validdata||
+|Valsvariabaut||
+|Variabautomatv||
+|Variabautomaxfecha||
+|VariabDeriv2||
+|VariabDeriv3||
+|Variables||
+|Variablestransf||
+|VerifCerca||
+|Verific||
+|Webbitacoraproc||
+|Webcontadores||
+|ZonasAreas||
+
+## MCHtablasycampos.def
 
 The configuration of the fields and the names of the tables (the basic tables of the system) is done through a definition file the structure in the tables is the same regardless of the language used (see [#7](https://github.com/opencdms/datamodel/issues/7))
 
