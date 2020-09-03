@@ -1,0 +1,33 @@
+4-26-93
+
+Denis Stuber:
+
+Replace your current versions of GRAFINIT.EXE and MESSAGES.FTN with the files
+on this diskette.  DFSTNLST.HLP is a new file that should be copied to the
+directory \CLICOM\HELP.
+
+The three files on this diskette were modified/created in order to display a 
+maximum of 32000 stations when a user defined station selection list is 
+created.  In addition, several errors in the station selection list procedure 
+were corrected.  This procedure was tested using about 800 stations.  Please 
+let us know if you have any problems using this procedure with large numbers 
+of stations.  
+
+We added a new feature to the station selection list procedure.  We hope this 
+will make it easier to work with large numbers of stations.  We added another 
+function key, F3, which allows you to move to a specified page in your list of
+stations.  After F3 is entered, the user is prompted to enter a page number.  
+You can page either forward or backward.  If you enter a page that is greater 
+than the maximum number of pages, you will be positioned at the last station
+available.
+
+The message file contains the following changes:
+a) modified messages -- 583, 593
+b) new messages      -- 612, 613, 614
+
+I hope these modifications help solve your problems with station selection.
+Please let us know how everything works out and if you need any additional
+help.
+
+Jackie Lord
+

@@ -1,0 +1,34 @@
+This routine enables you to display the
+level of detail in maps you have 
+defined.  
+
+Each of the detail categories allowed is
+shown in the menu.  You can change the
+status of each category (on or off) by
+picking that item from the menu.   For
+example: If country borders appear on
+the map, you can turn them off by
+selecting Borders from the menu. If
+borders do not appear on the map, you
+can turn them on by selecting Borders.  
+
+If the screen is blank except for a box
+outline, press any key to display the 
+popup Map Detail menu.  Pick a map
+detail using the method above.  If it is
+still blank after trying all available
+details, you should press F4/ESC to
+return to the Current Replacement map
+menu and select choice #2 "Modify
+Repacement map" to modify the current
+data.
+
+State borders are only available for
+areas in the western hemisphere. 
+
+
+
+
+This is help file GRAF-98.HLP, and is
+called from the REPLMAP program. 
+

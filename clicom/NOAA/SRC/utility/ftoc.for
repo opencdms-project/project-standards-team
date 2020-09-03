@@ -1,0 +1,12 @@
+$STORAGE:2
+C
+      SUBROUTINE FTOC(TT)
+C
+C  CONVERT FAHRENHEIT TEMPS TO CELSIUS TEMPS.
+C
+      TT = 5.0 / 9.0 * (TT - 32)
+C
+      RETURN
+      END
+C
+

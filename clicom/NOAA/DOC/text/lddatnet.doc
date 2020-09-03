@@ -1,0 +1,16 @@
+Loading data from key-entry files into DataEase (choice 3, Climate data
+entry and quality control) is performed by the programs LDDATA, NODUPMRG,
+and WTBTMRG2 and the batch files MERGE and MERGE2.  In most cases the
+system will detect a sharing violation error and the user can choose to
+either abort, or retry and wait until the files are available.  The most
+serious errors are the ones that occur when the DataEase files are
+accessed.  If the user aborted, the key entry files can be checked using 
+menu choice 3.1.  If the data remains in the key entry file, the user can
+restart the loading process from the beginning.  If the data is no longer
+accessible and a new backup index file (xxxxxx.BDX) has been created, the 
+data can be recovered by copying the file xxxxxx.BDX to
+xxxxxx.IDX.  This procedure can be performed as long as the key entry file
+has not been modified.  If the user aborted during the creation of the
+DataEase index files, re-indexing can be performed manually using the 
+procedures listed in Appendix F - Troubleshooting of the Reference Manual.
+

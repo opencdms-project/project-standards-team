@@ -1,0 +1,677 @@
+$STORAGE:2
+
+      PROGRAM DLYEXTR
+C
+C   PROGRAM TO COMPUTE DAILY EXTREMES BY READING THE DATAEASE FORM
+C       "DAILY DATA" THRU THE SUBROUTINE READDLY.
+C       THE PROGRAM ASKS THE USER FOR THE STATION AND DATE RANGE TO 
+C       BE CONSIDERED.
+C       IT WILL ALSO WORK WITH A SUBSET OF DATA HELD IN THE DATAEASE
+C       FORM HOLD DLY DATA.
+C
+C       THIS VERSION PRINTS THE RESULTS IN 80 COLUMN COMPRESSED MODE.
+C
+      PARAMETER (MAXMONTHS=12, MAXDAYS=31)
+C
+C   VARIABLES FOR STATION INFORMATION
+C
+      CHARACTER*24 STNABRV
+      CHARACTER*20 DISTRICT
+      CHARACTER*8 LON
+      CHARACTER*7 LAT
+      CHARACTER*3 MSGTXT
+      REAL ELEV
+      INTEGER*4 SRCHDATE
+C
+C  PROGRAM CONTROL VARIABLES
+C
+      CHARACTER*64 FILNAME
+      CHARACTER*8 STNWANTED,STRTDATE
+      CHARACTER*1 DATASOURCE,RTNCODE,PAGEFD
+      INTEGER*4 STRTYRMO, ENDYRMO, YRMON
+      INTEGER*4 RECCOUNT, NRECCOUNT, IREC
+C
+C  INPUT DATA VARIABLES
+C    
+      CHARACTER*8 STNID 
+      CHARACTER*1 FLAG1(MAXDAYS)
+      REAL*4 VALUE(MAXDAYS)
+      INTEGER*2 DDSID,IELEM,MONTH,YEAR
+C
+C  VARIABLES FOR COMPUTATION OF RESULTS
+C
+      REAL*8  AVGMAX(MAXMONTHS,MAXDAYS),AVGMIN(MAXMONTHS,MAXDAYS)
+     +          ,MLYMAX,MLYMIN,AVGTEMP,MLYTEMP
+      REAL*4  EXTMAX(MAXMONTHS,MAXDAYS),EXTMIN(MAXMONTHS,MAXDAYS)
+     +       ,EXTPRCP(MAXMONTHS,MAXDAYS),EXTSNOW(MAXMONTHS,MAXDAYS)
+     +       ,MLYEMAX,MLYEMIN,MLYEPRCP,MLYESNOW
+      INTEGER*2 MAXYEAR(MAXMONTHS,MAXDAYS),MINYEAR(MAXMONTHS,MAXDAYS)
+     +       ,PRCPYEAR(MAXMONTHS,MAXDAYS),SNOWYEAR(MAXMONTHS,MAXDAYS)
+     +       ,NUMXYEARS(MAXMONTHS,MAXDAYS),NUMNYEARS(MAXMONTHS,MAXDAYS)
+     +       ,NUMPYEARS(MAXMONTHS,MAXDAYS),NUMSYEARS(MAXMONTHS,MAXDAYS)
+     +       ,MLYXYEAR,MLYNYEAR,MLYPYEAR,MLYSYEAR,LOWYEAR,HIGHYEAR
+      CHARACTER*1 MAXFLAG(MAXMONTHS,MAXDAYS),MINFLAG(MAXMONTHS,MAXDAYS)
+     +       ,PRCPFLAG(MAXMONTHS,MAXDAYS),SNOWFLAG(MAXMONTHS,MAXDAYS)
+     +       ,MLYXFLAG,MLYNFLAG,MLYPFLAG,MLYSFLAG
+C
+C   VARIABLES TO HOLD OUTPUT FOR PRINTING
+C
+      CHARACTER*1 SETLRG(8),SETNRM(8),SETSML(8),STRTUND(8),STPUND(8)
+     +            ,SETLJLPI(8),LJRESET(8),LINCHR(11), LJPRNTER(8)
+      CHARACTER*8 LJCODE,LASERPRN
+      EQUIVALENCE (LJCODE,SETLJLPI(1)), (LASERPRN,LJPRNTER(1))
+C
+      CHARACTER*7 OUTCNT(2)
+      CHARACTER*6 PRNTTEMP,PRNTMAX,PRNTMIN
+      CHARACTER*5 PRNEMAX,PRNEMIN,PRNTPRCP,PRNTSNOW
+      CHARACTER*4 PRNXYEAR,PRNNYEAR,PRNPYEAR,PRNSYEAR
+      CHARACTER*3 MAXTEMPYRS,MINTEMPYRS,PRCPYRS,SNOWYRS
+C
+      CHARACTER*80 PRTLIN,FOOTER(2)
+      CHARACTER*60 TITLE
+      CHARACTER*28 COL3TL(4),COL4TL(4)
+      CHARACTER*20 COL5TL(4),COL6TL(4),HLDTXT
+      CHARACTER*16 MONNAME(13) 
+      CHARACTER*14 COL2TL(4)
+      CHARACTER*12 TLTXT(9)
+      CHARACTER*10 COL1TL(4),COL1FT
+      INTEGER*2 TLLEN(9)
+      INTEGER NUMDAYS(MAXMONTHS)
+      LOGICAL LASERFLG,FIRSTCALL
+C----------------------------------------------------------------------
+      DATA NUMDAYS/31,29,31,30,31,30,31,31,30,31,30,31/
+      DATA LASERFLG,FIRSTCALL /2*'.TRUE.'/
+      DATA OUTCNT/'     ','     '/
+C
+      PAGEFD = CHAR(12)
+      OUTCNT(2)(1:1) = CHAR(0)
+      DO 10 I = 1,8
+         LJPRNTER (I) = CHAR (0)
+10    CONTINUE                 
+C
+C   READ THE PRINTER CONFIGURATION CODES, MONTH NAMES, AND TITLE
+C   AND COLLUMN HEADERS AND FOOTERS
+C
+      CALL RDPRNT(SETNRM,SETLRG,SETSML,STRTUND,STPUND,LINCHR,
+     +            SETLJLPI,LJRESET)
+C
+C ** CHECK PRINTER CONFIGURATION CODE TO DETERMINE IF THE KIND OF PRINTER
+C       USED IS LASER OR DOT-MATRIX PRINTER.  IF IT IS LASER PRINTER THEN
+C       LINE SPACING WILL BE SET TO 8 LINES PER INCH.
+C
+      IF (LJCODE.EQ.LASERPRN) THEN
+           LASERFLG = .FALSE.
+      END IF
+      CALL GETTLS(TLTXT,12,TLLEN,7)
+      CALL GETMON(MONNAME,16)
+C      
+   20 CONTINUE
+      OPEN (61,FILE='P:\DATA\DLYEXTR.PRM',STATUS='OLD',FORM='FORMATTED'
+     +    ,IOSTAT=IOCHK)
+      IF (IOCHK.NE.0) THEN
+         CALL OPENMSG('P:\DATA\DLYEXTR.PRM   ','DLYEXTR     ',IOCHK)
+         GO TO 20
+      END IF   
+C     
+      READ(61,*) TITLE
+      READ(61,*) TLTXT(8),TLTXT(9)
+      DO 40 I = 1,4
+         READ(61,*) COL1TL(I),COL2TL(I),COL3TL(I),COL4TL(I),COL5TL(I)
+     +              ,COL6TL(I)    
+   40 CONTINUE
+      READ(61,*) COL1FT
+      READ(61,*) FOOTER(1)  
+      READ(61,*) FOOTER(2)
+      CLOSE(61)  
+      TLLEN(8) = LNG(TLTXT(8))
+      TLLEN(9) = LNG(TLTXT(9))
+C
+C   READ CONTROL INFO
+C
+      FILNAME = 'P:\HELP\DLYEXTR.HLP '
+      CALL SETMOD(3,IERR)
+   60 CONTINUE
+      CALL CLS
+      CALL LOCATE(1,0,IERR)
+      CALL GET1LIM(STNWANTED,STRTYRMO,ENDYRMO,FILNAME,RTNCODE)
+      IF (RTNCODE.NE.'0') THEN
+         CALL LOCATE(23,0,IERR)
+         STOP ' '
+      END IF      
+C
+C   SELECT THE SOURCE OF THE DATA TO BE READ
+C
+   70 CONTINUE
+      CALL DATASRC(8,DATASOURCE,RTNCODE)
+      IF (RTNCODE.NE.'0') THEN
+         GO TO 60
+      END IF
+C
+C  SELECT THE DESTINATION OF THE OUTPUT FILE
+C  
+      CALL POSLIN(IROW,ICOL)
+      CALL LOCATE(IROW,46,IERR)
+      CALL SELPRT(RTNCODE)
+      IF (RTNCODE.NE.'0') THEN
+         GO TO 70
+      END IF      
+C
+C  ** SETING THE NUMBER OF LINES PER PAGE IF IT IS LASER PRINTER
+C
+      IF ( LASERFLG ) THEN
+         WRITE(50,'(1X,8A1)') SETLJLPI
+      END IF
+C
+C   OPEN THE INPUT FILE - OPENPOS REQUIRES FTN 4.0 OR LATER.  IF USING
+C   FTN 3.3 YPU MUST REPLACE CALL TO OPENPOS WITH CALL TO OPENINPUT
+C
+      WRITE(STRTDATE,'(I6)') STRTYRMO
+      CALL OPENPOS('DLY',DATASOURCE,STNWANTED,STRTDATE)
+
+C      CALL OPENINPUT('DLY',DATASOURCE)
+C
+C   INITIALIZE
+C
+      DO 80 I=1,MAXMONTHS
+         DO 80 J=1,MAXDAYS
+            AVGMAX(I,J) = 0.0
+            AVGMIN(I,J) = 0.0
+            EXTMAX(I,J) = -99999.
+            EXTMIN(I,J) = 99999.
+            EXTPRCP(I,J) = -99999.
+            EXTSNOW(I,J) = -99999.
+            MAXYEAR(I,J) = 0
+            MINYEAR(I,J) = 0
+            PRCPYEAR(I,J) = 0
+            SNOWYEAR(I,J) = 0
+            MAXFLAG(I,J) = ' '
+            MINFLAG(I,J) = ' '
+            PRCPFLAG(I,J) = ' '
+            SNOWFLAG(I,J) = ' '
+            NUMXYEARS(I,J) = 0
+            NUMNYEARS(I,J) = 0
+            NUMPYEARS(I,J) = 0
+            NUMSYEARS(I,J) = 0
+   80 CONTINUE                
+      NRECCOUNT = 0
+      LOWYEAR = 9999
+      HIGHYEAR = 0
+      RECCOUNT = 0
+      TEMPSCALE = 0.1
+      PRCPSCALE = 0.1
+      SNOWSCALE = 1.0
+C
+C  WRITE THE RUNNING TOTAL LINE
+C
+      CALL CLRMSG(1)
+      CALL LOCATE(24,0,IERR)
+      CALL WRTSTR('Records Read -          Records processed - '
+     +             ,44,14,0)
+
+C-----------------------------------------------------------------------
+C                         DO THE PROCESSING                            ³
+C-----------------------------------------------------------------------
+      DO 500 IREC=1,999999
+         CALL READDLY(DDSID,STNID,IELEM,YEAR,MONTH,VALUE,FLAG1
+     +       ,RTNCODE)
+         IF (RTNCODE.NE.'0') THEN
+            GO TO 501
+         END IF
+         RYEAR = YEAR
+         RMON = MONTH
+         RYRMON = RYEAR*100. + RMON
+         YRMON = INT4(RYRMON)
+         NRECCOUNT = NRECCOUNT + 1
+         CALL LOCATE(24,15,IERR)
+         WRITE(OUTCNT(1),'(I7)') NRECCOUNT
+         CALL CWRITE(OUTCNT,12,IERR)
+         IF (STNID.GT.STNWANTED.OR.(STNID.EQ.STNWANTED.AND.
+     +        YRMON.GT.ENDYRMO)) THEN
+            GO TO 501
+         ELSE IF (STNID.NE.STNWANTED.OR.YRMON.LT.STRTYRMO.OR.
+     +        YRMON.GT.ENDYRMO) THEN
+            GO TO 500
+         END IF
+         IF(YEAR.LT.LOWYEAR) LOWYEAR = YEAR
+         IF(YEAR.GT.HIGHYEAR) HIGHYEAR = YEAR
+         RECCOUNT = RECCOUNT + 1
+         CALL LOCATE(24,44,IERR)
+         WRITE(OUTCNT(1),'(I7)') RECCOUNT
+         CALL CWRITE(OUTCNT,12,IERR)
+         IF (IELEM.EQ.2) THEN
+           DO 100 IDAY = 1,MAXDAYS 
+              IF (VALUE(IDAY).NE.-99999.) THEN
+                 REALVALUE = VALUE(IDAY) 
+                 AVGMAX(MONTH,IDAY) = AVGMAX(MONTH,IDAY) + REALVALUE     
+                 NUMXYEARS(MONTH,IDAY) = NUMXYEARS(MONTH,IDAY) + 1
+                 IF (REALVALUE.GT.EXTMAX(MONTH,IDAY)) THEN
+                    EXTMAX(MONTH,IDAY) = REALVALUE 
+                    MAXYEAR(MONTH,IDAY) = YEAR                       
+                    MAXFLAG(MONTH,IDAY) = ' '
+                 ELSE IF (REALVALUE.EQ.EXTMAX(MONTH,IDAY)) THEN
+                    MAXYEAR(MONTH,IDAY) = YEAR
+                    MAXFLAG(MONTH,IDAY) = '*'
+                 END IF
+              END IF
+  100      CONTINUE
+         ELSE IF (IELEM.EQ.3) THEN
+           DO 150 IDAY = 1,MAXDAYS 
+              IF (VALUE(IDAY).NE.-99999.) THEN
+                 REALVALUE = VALUE(IDAY)
+                 AVGMIN(MONTH,IDAY) = AVGMIN(MONTH,IDAY) + REALVALUE     
+                 NUMNYEARS(MONTH,IDAY) = NUMNYEARS(MONTH,IDAY) + 1
+                 IF (REALVALUE.LT.EXTMIN(MONTH,IDAY)) THEN
+                    EXTMIN(MONTH,IDAY) = REALVALUE 
+                    MINYEAR(MONTH,IDAY) = YEAR                       
+                    MINFLAG(MONTH,IDAY) = ' '
+                 ELSE IF (REALVALUE.EQ.EXTMIN(MONTH,IDAY)) THEN
+                    MINYEAR(MONTH,IDAY) = YEAR
+                    MINFLAG(MONTH,IDAY) = '*'
+                 END IF
+              END IF
+  150      CONTINUE
+         ELSE IF (IELEM.EQ.5) THEN
+           DO 200 IDAY = 1,MAXDAYS 
+              IF (VALUE(IDAY).NE.-99999.) THEN
+                 REALVALUE = VALUE(IDAY)
+                 NUMPYEARS(MONTH,IDAY) = NUMPYEARS(MONTH,IDAY) + 1
+                 IF (REALVALUE.GT.EXTPRCP(MONTH,IDAY)) THEN
+                    EXTPRCP(MONTH,IDAY) = REALVALUE 
+                    PRCPYEAR(MONTH,IDAY) = YEAR                       
+                    PRCPFLAG(MONTH,IDAY) = ' '
+                 ELSE IF (REALVALUE.EQ.EXTPRCP(MONTH,IDAY)) THEN
+                    PRCPYEAR(MONTH,IDAY) = YEAR
+                    PRCPFLAG(MONTH,IDAY) = '*'
+                 END IF
+              END IF
+  200      CONTINUE
+         ELSE IF (IELEM.EQ.49) THEN
+           DO 250 IDAY = 1,MAXDAYS 
+              IF (VALUE(IDAY).NE.-99999.) THEN
+                 REALVALUE = VALUE(IDAY)
+                 NUMSYEARS(MONTH,IDAY) = NUMSYEARS(MONTH,IDAY) + 1
+                 IF (REALVALUE.GT.EXTSNOW(MONTH,IDAY)) THEN
+                    EXTSNOW(MONTH,IDAY) = REALVALUE 
+                    SNOWYEAR(MONTH,IDAY) = YEAR                       
+                    SNOWFLAG(MONTH,IDAY) = ' '
+                 ELSE IF (REALVALUE.EQ.EXTSNOW(MONTH,IDAY)) THEN
+                    SNOWYEAR(MONTH,IDAY) = YEAR
+                    SNOWFLAG(MONTH,IDAY) = '*'
+                 END IF
+              END IF
+  250      CONTINUE
+         END IF
+  500 CONTINUE
+  501 CONTINUE
+C-----------------------------------------------------------------------
+C        ENSURE ENOUGH DATA HAS BEEN READ BEFORE PRINTING RESULTS      ³
+C-----------------------------------------------------------------------
+      IF (RECCOUNT.LT.MAXMONTHS) THEN
+         WRITE(MSGTXT,'(I3)') RECCOUNT
+         CALL WRTMSG(3,66,12,1,1,MSGTXT,3)
+         GO TO 2000
+      END IF
+      CALL LOCATE(24,0,IERR)
+      WRITE(*,*)
+      WRITE(*,*) 'Printing ...'
+C-----------------------------------------------------------------------
+C             SUMMARIZE AND PRINT THE DATA FOR THE STATION             ³
+C-----------------------------------------------------------------------
+      SRCHDATE = HIGHYEAR*10000 
+      CALL RDGEOG(STNWANTED,SRCHDATE,STNABRV,DISTRICT,LAT,LON,ELEV
+     +     ,RTNCODE)
+C
+C    SUMMARIZE AND WRITE EACH MONTH
+C
+      DO 1990 IMON = 1,MAXMONTHS
+         IF (FIRSTCALL) THEN
+            WRITE(50,900) SETNRM,SETSML,LINCHR(3),(LINCHR(2),I5=1,127)
+     +            ,LINCHR(4)    
+            FIRSTCALL = .FALSE.
+         ELSE
+            WRITE(50,950) SETNRM,SETSML,LINCHR(3),(LINCHR(2),I5=1,127)
+     +            ,LINCHR(4)    
+         END IF
+         WRITE(50,1025) LINCHR(1),LINCHR(1)
+C
+C   WRITE THE OUTPUT HEADER - STATION-ID, MONTH, NAME ETC
+C
+         WRITE(50,1000) SETNRM,TITLE
+C   PRINT OVER SAME LINE, IT DOES NOT ADVANCE ONE LINE
+         WRITE(50,1001) SETSML,LINCHR(1),LINCHR(1),SETNRM
+C   PRINT SPACE LINE
+         WRITE(50,1010) SETSML,LINCHR(1),LINCHR(1),SETNRM
+
+         PRTLIN = '    '
+         ITXT = TLLEN(1) 
+         PRTLIN(1:ITXT) = TLTXT(1)(1:TLLEN(1))
+         ITXT = ITXT + 1
+         PRTLIN(ITXT:ITXT) = ':'
+         ITXT = ITXT + 2
+         PRTLIN(ITXT:ITXT+7) = STNWANTED
+         ITXT = ITXT + 20
+         NTXT = ITXT + TLLEN(3) - 1
+         PRTLIN(ITXT:NTXT) = TLTXT(3)(1:TLLEN(3))
+         PRTLIN(NTXT+1:NTXT+1) = ':'
+         PRTLIN(NTXT+3:NTXT+15) = MONNAME(IMON)
+         ITXT = NTXT + 20  
+         NTXT = ITXT + TLLEN(4) -1
+         PRTLIN(ITXT:NTXT) = TLTXT(4)(1:TLLEN(4))
+         PRTLIN(NTXT+1:NTXT+1) = ':'
+         WRITE(HLDTXT,'(I4,''-'',I4)') LOWYEAR,HIGHYEAR
+         ITXT = NTXT + 3
+         NTXT = ITXT + 8
+         PRTLIN(ITXT:NTXT) = HLDTXT(1:9)
+
+         WRITE(50,1015) SETNRM,PRTLIN
+C   PRINT OVER SAME LINE, IT DOES NOT ADVANCE ONE LINE
+         WRITE(50,1001) SETSML,LINCHR(1),LINCHR(1),SETNRM
+C   PRINT SPACE LINE
+         WRITE(50,1010) SETSML,LINCHR(1),LINCHR(1),SETNRM
+
+         PRTLIN = ' '
+         ITXT = TLLEN(2) 
+         PRTLIN(1:ITXT) = TLTXT(2)(1:TLLEN(2))
+         ITXT = ITXT + 1
+         PRTLIN(ITXT:ITXT) = ':'
+         ITXT = ITXT + 2
+         PRTLIN(ITXT:ITXT+24) = STNABRV
+
+         WRITE(50,1015) SETNRM,PRTLIN
+         WRITE(50,1001) SETSML,LINCHR(1),LINCHR(1),SETNRM
+
+         PRTLIN = ' '
+         ITXT = TLLEN(5) 
+         PRTLIN(1:ITXT) = TLTXT(5)(1:TLLEN(5))
+         ITXT = ITXT + 1
+         PRTLIN(ITXT:ITXT) = ':'
+         ITXT = ITXT + 2
+         PRTLIN(ITXT:ITXT+20) = DISTRICT
+
+         WRITE(50,1015) SETNRM,PRTLIN
+         WRITE(50,1001) SETSML,LINCHR(1),LINCHR(1),SETNRM
+
+         PRTLIN = ' '
+         ITXT = TLLEN(6) 
+         PRTLIN(1:ITXT) = TLTXT(6)(1:TLLEN(6))
+         ITXT = ITXT + 1
+         PRTLIN(ITXT:ITXT) = ':'
+         ITXT = ITXT + 2
+         PRTLIN(ITXT:ITXT+2) = LAT(1:2)
+         ITXT = ITXT + 3
+         PRTLIN(ITXT:ITXT+2) = LAT(3:4)
+         ITXT = ITXT + 3
+         PRTLIN(ITXT:ITXT+3) = LAT(5:7)
+         ITXT = ITXT + 11
+         NTXT = ITXT + TLLEN(7) - 1
+         PRTLIN(ITXT:NTXT) = TLTXT(7)(1:TLLEN(7))
+         ITXT = NTXT + 1
+         PRTLIN(ITXT:ITXT) = ':'
+         ITXT = ITXT + 2
+         PRTLIN(ITXT:ITXT+3) = LON(1:3)
+         ITXT = ITXT + 4
+         PRTLIN(ITXT:ITXT+2) = LON(4:5)
+         ITXT = ITXT + 3
+         PRTLIN(ITXT:ITXT+3) = LON(6:8)
+
+         WRITE(50,1015) SETNRM,PRTLIN
+         WRITE(50,1001) SETSML,LINCHR(1),LINCHR(1),SETNRM
+
+         PRTLIN = ' '
+         ITXT = TLLEN(8) 
+         PRTLIN(1:ITXT) = TLTXT(8)(1:TLLEN(8))
+         ITXT = ITXT + 1
+         PRTLIN(ITXT:ITXT) = ':'
+         ITXT = ITXT + 2
+         WRITE(HLDTXT,'(F7.1)') ELEV
+         PRTLIN(ITXT:ITXT+6) = HLDTXT(1:7)
+         ITXT = ITXT + 8
+         NTXT = ITXT + TLLEN(9) - 1
+         PRTLIN(ITXT:NTXT) = TLTXT(9)(1:TLLEN(9))
+
+         WRITE(50,1015) SETNRM,PRTLIN
+         WRITE(50,1001) SETSML,LINCHR(1),LINCHR(1),SETSML
+         WRITE(50,1025) LINCHR(1),LINCHR(1)
+         WRITE(50,1060) LINCHR(9),(LINCHR(2),I5=1,10),LINCHR(6)
+     +       ,(LINCHR(2),I6=1,14),(LINCHR(6),(LINCHR(2),I7=1,28)
+     +       ,I8=1,2),(LINCHR(6),(LINCHR(2),I9=1,21),I10=1,2)
+     +       ,LINCHR(10)
+         WRITE(50,1035) (LINCHR(1),I5=1,7)
+         DO 1050 I5 = 1,4
+            WRITE(50,1040) LINCHR(1),COL1TL(I5),LINCHR(1),COL2TL(I5)
+     +          ,LINCHR(1),COL3TL(I5),LINCHR(1),COL4TL(I5)       
+     +          ,LINCHR(1),COL5TL(I5),LINCHR(1),COL6TL(I5),LINCHR(1)       
+ 1050    CONTINUE
+         WRITE(50,1060) LINCHR(9),(LINCHR(2),I5=1,10),LINCHR(11)
+     +       ,(LINCHR(2),I6=1,14),(LINCHR(11),(LINCHR(2),I7=1,28)
+     +       ,I8=1,2),(LINCHR(11),(LINCHR(2),I9=1,21),I10=1,2)
+     +       ,LINCHR(10) 
+
+         MLYMAX = 0.0
+         MLYMIN = 0.0
+         MLYEMAX = -99999.
+         MLYEMIN = 99999.
+         MLYEPRCP = 0.0
+         MLYESNOW = 0.0
+         MLYXYEAR = 0
+         MLYNYEAR = 0
+         MLYPYEAR = 0
+         MLYSYEAR = 0
+         NUMXDAYS = 0
+         NUMNDAYS = 0
+         NUMTDAYS = 0
+         NUMPDAYS = 0
+         NUMSDAYS = 0
+         MLYXFLAG = ' '
+         MLYNFLAG = ' '
+         MLYPFLAG = ' '
+         MLYSFLAG = ' '
+C
+C      WITHIN THE MONTH SUMMARIZE AND WRITE EACH DAY
+C 
+         DO 1500 IDAY = 1,NUMDAYS(IMON)
+C
+C          WORK WITH MAXIMUM TEMPERATURE DATA
+C
+            IF (NUMXYEARS(IMON,IDAY).GT.0) THEN
+               AVGMAX(IMON,IDAY)=AVGMAX(IMON,IDAY)/NUMXYEARS(IMON,IDAY)
+               WRITE(PRNTMAX,'(F6.2)') AVGMAX(IMON,IDAY)
+               MLYMAX = MLYMAX + AVGMAX(IMON,IDAY)
+               NUMXDAYS = NUMXDAYS + 1
+               WRITE(PRNEMAX,'(F5.1)') EXTMAX(IMON,IDAY)
+               WRITE(PRNXYEAR,'(I4)') MAXYEAR(IMON,IDAY)
+               WRITE(MAXTEMPYRS,'(I3)') NUMXYEARS(IMON,IDAY)
+               IF (EXTMAX(IMON,IDAY).GT.MLYEMAX) THEN
+                  MLYEMAX = EXTMAX(IMON,IDAY)
+                  MLYXYEAR = MAXYEAR(IMON,IDAY)
+                  MLYXFLAG = MAXFLAG(IMON,IDAY)
+               END IF               
+            ELSE
+               PRNTMAX = '      '
+               PRNEMAX = '     '
+               PRNXYEAR = '    '
+               MAXTEMPYRS = '   '
+            END IF
+C
+C        WORK WITH MINIMUM TEMPERATURE DATA
+C 
+           IF (NUMNYEARS(IMON,IDAY).GT.0) THEN
+              AVGMIN(IMON,IDAY)=AVGMIN(IMON,IDAY)/NUMNYEARS(IMON,IDAY)
+              WRITE(PRNTMIN,'(F6.2)') AVGMIN(IMON,IDAY)
+              MLYMIN = MLYMIN + AVGMIN(IMON,IDAY)
+              NUMNDAYS = NUMNDAYS + 1
+              WRITE(PRNEMIN,'(F5.1)') EXTMIN(IMON,IDAY)
+              WRITE(PRNNYEAR,'(I4)') MINYEAR(IMON,IDAY)
+              WRITE(MINTEMPYRS,'(I3)') NUMNYEARS(IMON,IDAY)
+              IF (EXTMIN(IMON,IDAY).LT.MLYEMIN) THEN
+                 MLYEMIN = EXTMIN(IMON,IDAY)
+                 MLYNYEAR = MINYEAR(IMON,IDAY)
+                 MLYNFLAG = MINFLAG(IMON,IDAY)
+              END IF               
+           ELSE
+              PRNTMIN = '      '
+              PRNEMIN = '     '
+              PRNNYEAR = '    '
+              MINTEMPYRS = '   '
+           END IF
+C
+C        COMPUTE THE DAILY MEAN TEMPERATURE
+C  
+           IF (NUMXYEARS(IMON,IDAY).GT.0.AND.NUMNYEARS(IMON,IDAY).GT.0)
+     +                                                            THEN
+              AVGTEMP = (AVGMAX(IMON,IDAY) + AVGMIN(IMON,IDAY)) / 2
+              MLYTEMP = MLYTEMP + AVGTEMP
+              NUMTDAYS = NUMTDAYS + 1
+              WRITE(PRNTTEMP,'(F6.2)') AVGTEMP
+           ELSE
+              PRNTTEMP = '      '
+           END IF
+C
+C       WORK WITH MAXIMUM PRECIPITATION DATA
+C 
+          IF (NUMPYEARS(IMON,IDAY).GT.0) THEN
+             WRITE(PRNTPRCP,'(F5.1)') EXTPRCP(IMON,IDAY) 
+             WRITE(PRNPYEAR,'(I4)') PRCPYEAR(IMON,IDAY)
+             WRITE(PRCPYRS,'(I3)') NUMPYEARS(IMON,IDAY)
+             NUMPDAYS = NUMPDAYS + 1  
+             IF (EXTPRCP(IMON,IDAY).GT.MLYEPRCP) THEN
+                MLYEPRCP = EXTPRCP(IMON,IDAY)
+                MLYPYEAR = PRCPYEAR(IMON,IDAY)
+                MLYPFLAG = PRCPFLAG(IMON,IDAY)
+             END IF               
+          ELSE
+             PRNTPRCP = '      '
+             PRNPYEAR = '    '
+             PRCPYRS = '   '
+          END IF
+C
+C        WORK WITH MAXIMUM SNOWFALL DATA
+C 
+           IF (NUMSYEARS(IMON,IDAY).GT.0) THEN 
+              WRITE(PRNTSNOW,'(F5.1)') EXTSNOW(IMON,IDAY)
+              WRITE(PRNSYEAR,'(I4)') SNOWYEAR(IMON,IDAY)
+              WRITE(SNOWYRS,'(I3)') NUMSYEARS(IMON,IDAY)
+              NUMSDAYS = NUMSDAYS + 1
+              IF (EXTSNOW(IMON,IDAY).GT.MLYESNOW) THEN
+                 MLYESNOW = EXTSNOW(IMON,IDAY)
+                 MLYSYEAR = SNOWYEAR(IMON,IDAY)
+                 MLYSFLAG = SNOWFLAG(IMON,IDAY)
+              END IF               
+           ELSE
+              PRNTSNOW = '      '
+              PRNSYEAR = '    '
+              SNOWYRS = '   '
+           END IF
+C           
+C       WRITE OUT A DAILY INFORMATION LINE
+C
+            WRITE(50,1100) LINCHR(1),IDAY,LINCHR(1),PRNTTEMP,LINCHR(1)
+     +          ,PRNTMAX,PRNEMAX,PRNXYEAR,MAXFLAG(IMON,IDAY),MAXTEMPYRS
+     +          ,LINCHR(1),PRNTMIN,PRNEMIN,PRNNYEAR,MINFLAG(IMON,IDAY)
+     +          ,MINTEMPYRS,LINCHR(1),PRNTPRCP,PRNPYEAR
+     +          ,PRCPFLAG(IMON,IDAY),PRCPYRS,LINCHR(1),PRNTSNOW,PRNSYEAR 
+     +          ,SNOWFLAG(IMON,IDAY),SNOWYRS,LINCHR(1)
+            IF (IDAY.EQ.10.OR.IDAY.EQ.20) THEN
+               WRITE(50,1060) LINCHR(9),(LINCHR(2),I5=1,10),LINCHR(11)
+     +            ,(LINCHR(2),I6=1,14),(LINCHR(11),(LINCHR(2),I7=1,28)
+     +            ,I8=1,2),(LINCHR(11),(LINCHR(2),I9=1,21),I10=1,2)
+     +            ,LINCHR(10) 
+            END IF
+ 1500    CONTINUE
+C-----------------------------------------------------------------------
+C          COMPUTE AND WRITE OUT THE MONTHLY SUMMARY LINES             ³
+C-----------------------------------------------------------------------
+         IF (NUMTDAYS.GT.0) THEN
+            MLYTEMP = MLYTEMP / NUMTDAYS
+            WRITE(PRNTTEMP,'(F6.2)') MLYTEMP
+         ELSE
+            PRNTTEMP = '      '
+         END IF
+         IF (NUMXDAYS.GT.0) THEN
+            MLYMAX = MLYMAX / NUMXDAYS
+            WRITE(PRNTMAX,'(F6.2)') MLYMAX
+            WRITE(PRNEMAX,'(F5.1)') MLYEMAX
+            WRITE(PRNXYEAR,'(I4)') MLYXYEAR
+         ELSE
+            PRNTMAX = '      '
+            PRNEMAX = '     '
+            PRNXYEAR = '    '
+         END IF
+         IF (NUMNDAYS.GT.0) THEN
+            MLYMIN = MLYMIN / NUMNDAYS
+            WRITE(PRNTMIN,'(F6.2)') MLYMIN
+            WRITE(PRNEMIN,'(F5.1)') MLYEMIN
+            WRITE(PRNNYEAR,'(I4)') MLYNYEAR
+         ELSE
+            PRNTMIN = '      '
+            PRNEMIN = '     '
+            PRNNYEAR = '    '
+         END IF
+         IF (NUMPDAYS.GT.0) THEN
+            WRITE(PRNTPRCP,'(F5.1)') MLYEPRCP
+            WRITE(PRNPYEAR,'(I4)') MLYPYEAR
+         ELSE
+            PRNTPRCP = '     '
+            PRNPYEAR = '    '
+         END IF
+         IF (NUMSDAYS.GT.0) THEN
+            WRITE(PRNTSNOW,'(F5.1)') MLYESNOW
+            WRITE(PRNSYEAR,'(I4)') MLYSYEAR
+         ELSE
+            PRNTSNOW = '     '
+            PRNSYEAR = '    '
+         END IF
+
+         WRITE(50,1060) LINCHR(9),(LINCHR(2),I5=1,10),LINCHR(11)
+     +       ,(LINCHR(2),I6=1,14),(LINCHR(11),(LINCHR(2),I7=1,28)
+     +       ,I8=1,2),(LINCHR(11),(LINCHR(2),I9=1,21),I10=1,2)
+     +       ,LINCHR(10) 
+         WRITE(50,1600) LINCHR(1),COL1FT,LINCHR(1),PRNTTEMP,LINCHR(1)
+     +       ,PRNTMAX,PRNEMAX,PRNXYEAR,MLYXFLAG,LINCHR(1)
+     +       ,PRNTMIN,PRNEMIN,PRNNYEAR,MLYNFLAG,LINCHR(1)
+     +       ,PRNTPRCP,PRNPYEAR,MLYPFLAG,LINCHR(1)
+     +       ,PRNTSNOW,PRNSYEAR,MLYSFLAG,LINCHR(1)
+         WRITE(50,'(3X,132A1)') LINCHR(9),(LINCHR(2),I5=1,10),LINCHR(5)
+     +      ,(LINCHR(2),I6=1,14),(LINCHR(5),(LINCHR(2),I7=1,28)
+     +      ,I8=1,2),(LINCHR(5),(LINCHR(2),I9=1,21),I10=1,2)
+     +      ,LINCHR(10) 
+         WRITE(50,1025) LINCHR(1),LINCHR(1)
+         WRITE(50,1700) LINCHR(1),FOOTER(1),(LINCHR(1),I5=1,2)
+     +                 ,FOOTER(2),LINCHR(1)    
+         WRITE(50,'(3X,133A1)') LINCHR(7),(LINCHR(2),I5=1,127)
+     +       ,LINCHR(8)
+
+ 1990 CONTINUE
+C-----------------------------------------------------------------------
+ 2000 CONTINUE
+      CLOSE(35)
+C
+C   RESET PRINTER AND SET TO NORMAL MODE
+C
+      IF ( LASERFLG ) THEN
+         WRITE(50,'(1X,9A1)') PAGEFD,LJRESET
+      ELSE
+         WRITE(50,'(1X,9A1)') PAGEFD,SETNRM
+      END IF
+      CLOSE(50)
+C
+      STOP ' '
+C
+C   FORMAT STATEMENTS
+C
+  900 FORMAT(' ',/,1X,16A1,2X,129A1)
+  950 FORMAT('1',/,1X,16A1,2X,129A1)
+ 1000 FORMAT(' ',8A1,10X,A60,7X)
+ 1001 FORMAT('+',8A1,2X,A1,127X,A1,8A1)
+ 1010 FORMAT(' ',8A1,2X,A1,127X,A1,8A1)
+ 1015 FORMAT(' ',8A1,4X,A74,1X)
+ 1025 FORMAT(' ',2X,A1,127X,A1)
+ 1035 FORMAT(3X,A1,10X,A1,14X,A1,28X,A1,28X,A1,21X,A1,21X,A1)
+ 1040 FORMAT(3X,A1,A10,A1,A14,2(A1,A28),2(A1,A20,1X),A1)
+ 1060 FORMAT(3X,131A1)
+ 1100 FORMAT(3X,A1,4X,I2,4X,A1,4X,A6,4X,2(A1,1X,A6,4X,A5,2X,A4           
+     +      ,A1,1X,A3,1X),2(A1,2X,A6,3X,A4,A1,1X,A3,1X),A1)  
+ 1600 FORMAT(3X,A1,A10,A1,4X,A6,4X,2(A1,1X,A6,4X,A5,2X,A4   
+     +      ,A1,5X),2(A1,2X,A6,3X,A4,A1,5X),A1)
+ 1700 FORMAT(3X,A1,25X,A80,22X,A1,/,3X,A1,25X,A80,22X,A1)
+      END

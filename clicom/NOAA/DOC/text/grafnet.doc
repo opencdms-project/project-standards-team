@@ -1,0 +1,17 @@
+Problems with incompatible graphics devices and saved displays.
+
+In various parts of CLICOM graphic images are saved and redisplayed.  This
+procedure requires that the saved image be redisplayed on the same type of
+graphics device and at the same resolution as it was when it was saved.  
+Problems may be encountered when running CLICOM on a network if the server
+and readers have different types of graphics display devices.  In AREA-QC
+this problem will usually result in a display showing the station locations
+without a map background.  This problem can be resolved by defining a
+separate map for each different graphics device using menu choice 5.4.1.
+Before initiating AREA-QC, the user must link the appropriate map file
+to the dataset he will be using by choosing menu choice 5.4.2.  A similar
+problem will occur when a predefined graphics screen is displayed on an
+incompatible graphics device.  In this case the only solution is to remember
+that if the user wishes to display a graphics image on a specific device, it
+must be saved on a compatible device.
+

@@ -1,0 +1,797 @@
+$STORAGE:2 
+      PROGRAM CORR2
+C
+C   PROGRAM TO COMPUTE A BI-VARIATE FREQUENCY DISTRIUBUTION BY READING
+C       THE DATAEASE FORM WANTED  THE PROGRAM ASKS THE USER FOR THE
+C       STATION AND DATE RANGE TO BE CONSIDERED. AS WELL AS FOR THE
+C       ELEMENTS TO BE COMPARED AND THE SIZES AND LIMITS OF THE GROUPS
+C       OF THE VALUES OF THOSE ELEMENTS.
+C
+C       THIS VERSION PRINTS THE RESULTS IN 80 COLUMN COMPRESSED MODE.
+C
+      PARAMETER (NUM1GROUPS=20, NUM2GROUPS=12, MAXVAR=96)
+C
+C  PROGRAM CONTROL VARIABLES
+C
+      CHARACTER*64 HELP1, HELP2
+      CHARACTER*8 STNWANTED,STRTDATE
+      INTEGER*4 STRTYRMO, ENDYRMO,NAMDATE,YRMON
+      INTEGER*4 RECCOUNT, NRECCOUNT, IREC
+      INTEGER*2 IRANGE(2), ITYPE 
+      INTEGER*2 ELEM(2)
+      REAL*4    MINVALUE(2),MAXVALUE(2),GROUPSIZE(2) 
+      CHARACTER*16 ELEMNAME(2)
+      CHARACTER*1 REPLY,DATASOURCE,PAGEFD
+      CHARACTER*3 RECTYPE,TYPEDEF(7)
+C
+C  INPUT DATA VARIABLES
+C    
+      CHARACTER*8 STNID,PERIOD
+      CHARACTER*1 FLAG1(MAXVAR),RTNCODE  
+      REAL*4 VALUE(MAXVAR)
+      INTEGER*2 IELEM,DAY,MONTH,YEAR
+C
+C  VARIABLES FOR COMPUTATION OF RESULTS
+C
+      INTEGER*4 COUNT(13,NUM1GROUPS,NUM2GROUPS),SUB1TOTAL(NUM1GROUPS)
+     +         ,SUB2TOTAL(NUM2GROUPS),TOTAL
+      REAL*4  FREQUENCY(NUM1GROUPS,NUM2GROUPS),SUB1FREQ(NUM1GROUPS)
+     +       ,SUB2FREQ(NUM2GROUPS)
+      INTEGER*2 HELEM,HMONTH,HYEAR, INDEX1,INDEX2,INDEX,HINDEX
+     +         ,NELEM,NHELEM
+     +         ,LOWYEAR,HIGHYEAR
+      REAL*4 HVALUE(MAXVAR)
+      REAL*4 BEGINGROUP(2,NUM1GROUPS)
+     +      ,ENDGROUP(2,NUM1GROUPS)
+C
+C   VARIABLES TO HOLD OUTPUT FOR PRINTING
+C
+      CHARACTER*1 SETLRG(8),SETNRM(8),SETSML(8),STRTUND(8),STPUND(8)
+     +             ,SETLJLPI(8),LJRESET(8),LINCHR(11),LJPRNTER(8)
+      CHARACTER*8 LJCODE,LASERPRN 
+      EQUIVALENCE (LJCODE,SETLJLPI(1)), (LASERPRN,LJPRNTER(1))
+C
+      CHARACTER*78 MSGLIN(5)
+      CHARACTER*12 TLTXT(14)
+      INTEGER*2    TLLEN(14), MAXLINE
+      CHARACTER*7  OUTCNT(2)
+      CHARACTER*9 DASHES, DBLINES
+C
+      CHARACTER*16 MONNAME(13) 
+C----------------------------------------------------------------------
+      LOGICAL LASERFLG,NEWPAGE,FIRSTCALL
+      DATA TYPEDEF /'MLY','10D','DLY','SYN','HLY','15M','U-A'/
+      DATA DASHES /'ÄÄÄÄÄÄÄÄÄ'/, OUTCNT/'       ','       '/
+      DATA DBLINES /'ÍÍÍÍÍÍÍÍÍ'/
+      DATA HELP1, HELP2 /'P:\HELP\CORR2.HLP','P:\HELP\CORR2-2.HLP'/
+      DATA LASERFLG,NEWPAGE,FIRSTCALL /3*'.TRUE.'/
+      OUTCNT(2)(1:1) = CHAR(0)
+      PAGEFD = CHAR(12)
+C
+C     INITIALIZE
+C
+      DO 10 I = 1,8
+         LJPRNTER (I) = CHAR (0)
+10    CONTINUE                 
+
+C
+C   GET MESSAGE LINES, OUTPUT HEADER LABELS (STN-NAME, LAT, ETC), AND
+C   MONTH NAMES AND PRINTER CONFIGURATION CODES  
+C
+      CALL RDPRNT(SETNRM,SETLRG,SETSML,STRTUND,STPUND,LINCHR,
+     +            SETLJLPI,LJRESET)
+C
+C ** CHECK PRINTER CONFIGURATION CODE TO DETERMINE IF THE KIND OF PRINTER
+C       USED IS LASER OR DOT-MATRIX PRINTER.  IF IT IS LASER PRINTER THEN
+C       LINE SPACING WILL BE SET TO 8 LINES PER INCH.
+C
+      IF (LJCODE.EQ.LASERPRN) THEN
+           LASERFLG = .FALSE.
+      END IF
+C
+      CALL GETMON(MONNAME,16)
+      CALL GETTLS(TLTXT,12,TLLEN,7)
+      DO 12 I=3,5
+         MSGLIN(I) = ' '
+   12 CONTINUE
+      DO 13 I=8,14
+         TLTXT(I)=' '
+   13 CONTINUE
+C               
+   15 CONTINUE
+      OPEN (61,FILE='P:\DATA\CORR2.PRM',STATUS='OLD',FORM='FORMATTED'
+     +    ,IOSTAT=IOCHK)
+      IF (IOCHK.NE.0) THEN
+         CALL OPENMSG('P:\DATA\CORR2.PRM     ','CORR2       ',IOCHK)
+         GO TO 15 
+      END IF   
+      READ(61,*)MSGLIN(3),(TLTXT(I),I=8,14),MSGLIN(4),MSGLIN(5)  
+      READ(61,*)MAXLINE
+      DO 17 I=8,14
+         TLLEN(I) = LNG(TLTXT(I))
+   17 CONTINUE      
+C      
+      CALL SETMOD(3,IERR)
+C
+   20 CONTINUE
+      CALL CLS
+      CALL LOCATE(1,0,IERR)
+      CALL GET1LIM(STNWANTED,STRTYRMO,ENDYRMO,HELP1,RTNCODE)
+      IF (RTNCODE.NE.'0') THEN
+         CALL LOCATE(23,0,IERR)
+         STOP ' '
+      END IF
+C
+C   READ THE KIND OF DATA TO PROCESS
+C 
+30    CONTINUE
+      CALL LOCATE(8,7,IERR)
+      CALL DATATYPE(7,3,RECTYPE,NUMLOOP,RTNCODE)
+      IF (RTNCODE.NE.'0') THEN
+         GO TO 20
+      END IF
+      DAY = 1 
+      DO 35 ITYPE = 1,7
+         IF (RECTYPE.EQ.TYPEDEF(ITYPE)) THEN
+            GO TO 37
+         END IF
+35    CONTINUE
+37    CONTINUE
+C
+C   DETERMINE THE SOURCE OF THE INPUT DATA TO BE USED
+C 
+      CALL DATASRC(40,DATASOURCE,RTNCODE)
+      IF (RTNCODE.NE.'0') THEN
+         GO TO 30
+      END IF
+      CALL POSLIN(IROW,ICOL)
+      IROW = IROW + 6
+C
+C   READ THE ELEMENT AND GROUPING CONTROL INFO
+C
+   40 CONTINUE
+      CALL LOCATE(IROW,1,IERR)
+      CALL ELEMGRP(ELEM,ELEMNAME,MINVALUE,MAXVALUE,GROUPSIZE,IRANGE
+     +      ,ITYPE,HELP2,RTNCODE)
+      IF (RTNCODE.NE.'0') THEN
+         GO TO 20
+      END IF
+      CALL POSLIN(IROW,ICOL)
+      IROW6 = IROW + 6
+C
+C    DETERMINE THE LEVEL OF OUTPUT DETAIL WANTED
+C
+   50 CONTINUE      
+      CALL LOCATE(IROW6,8,IERR)
+      CALL GETMNU('CORR2-RESULT','  ',ICHOICE)
+      IF (ICHOICE.EQ.0) THEN
+         GO TO 40
+      ELSE IF (ICHOICE.EQ.1) THEN 
+         REPLY = 'M'
+      ELSE
+         REPLY = 'A'
+      END IF
+C
+C  SELECT THE DESTINATION OF THE OUTPUT FILE AND OPEN IT
+C  
+      CALL LOCATE(IROW6,46,IERR)
+      CALL SELPRT(RTNCODE)
+      IF (RTNCODE.NE.'0') THEN
+         GO TO 50
+      END IF      
+C
+C  ** SETING THE NUMBER OF LINES PER PAGE IF IT IS LASER PRINTER
+C
+      IF ( LASERFLG ) THEN
+         WRITE(50,'(1X,8A1)') SETLJLPI
+      END IF
+C
+C   OPEN THE INPUT FILE - OPENPOS REQUIRES FTN 4.0 OR LATER.  IF USING
+C   FTN 3.3 YOU MUST REPLACE CALL TO OPENPOS WITH CALL TO OPENINPUT
+C
+      WRITE(STRTDATE,'(I6)') STRTYRMO
+      CALL OPENPOS(RECTYPE,DATASOURCE,STNWANTED,STRTDATE)
+
+C      CALL OPENINPUT(RECTYPE,DATASOURCE)
+C
+C   INITIALIZE
+C
+      DO 180 IMON = 1,13
+         DO 180 I=1,NUM1GROUPS
+            DO 180 J=1,NUM2GROUPS
+               COUNT(IMON,I,J) = 0
+  180 CONTINUE
+      DO 185 I = 1,NUM1GROUPS
+         SUB1TOTAL(I) = 0
+  185 CONTINUE
+      DO 190 J = 1,NUM2GROUPS
+         SUB2TOTAL(J) = 0
+  190 CONTINUE
+      NRECCOUNT = 0          
+      RECCOUNT = 0
+      NPAGE = 0
+      LINECNT = 0
+      LOWYEAR = 9999
+      HIGHYEAR = 0
+C
+C  WRITE THE RUNNING TOTAL LINE
+C
+      CALL CLRMSG(1)
+      CALL LOCATE(24,0,IERR)
+      CALL WRTSTR('Records Read -          Records processed - '
+     +             ,44,14,0)
+C-----------------------------------------------------------------------
+C                   PROCESS THE DATA RECORDS                           |
+C-----------------------------------------------------------------------
+C
+C   FIND THE FIRST RECORD WHICH MEETS THE SEARCH CRITERIA
+C
+  200 CONTINUE
+         IF (RECTYPE.EQ.'DLY') THEN
+            CALL READDLY(DDSID,STNID,IELEM,YEAR,MONTH,VALUE,FLAG1
+     +          ,RTNCODE)
+         ELSE IF (RECTYPE.EQ.'SYN') THEN
+            CALL READSYN(DDSID,STNID,IELEM,YEAR,MONTH,DAY,VALUE,FLAG1
+     +          ,RTNCODE)
+         ELSE IF (RECTYPE.EQ.'HLY') THEN
+            CALL READHLY(DDSID,STNID,IELEM,YEAR,MONTH,DAY,VALUE,FLAG1
+     +          ,RTNCODE)
+         ELSE IF (RECTYPE.EQ.'15M') THEN
+            CALL READ15M(DDSID,STNID,IELEM,YEAR,MONTH,DAY,VALUE,FLAG1
+     +          ,RTNCODE)
+         ELSE
+            WRITE(*,'(''** INTERNAL PROGRAM ERROR - UNKNOWN RECTYPE = ''
+     +         ,A3,//)') RECTYPE
+            STOP ' ' 
+         END IF
+         RYEAR = YEAR
+         RMON = MONTH
+         RYRMON = RYEAR*100. + RMON
+         YRMON = INT4(RYRMON)
+      NRECCOUNT = NRECCOUNT + 1
+      CALL LOCATE(24,15,IERR)
+      WRITE(OUTCNT(1),'(I7)') NRECCOUNT
+      CALL CWRITE(OUTCNT,12,IERR)
+      IF(RTNCODE.EQ.'1'.OR.STNID.GT.STNWANTED.OR.
+     +       (STNID.EQ.STNWANTED.AND.YRMON.GT.ENDYRMO)) THEN
+         CALL CLRMSG(3)
+         CALL CLRMSG(2)
+         CALL WRTMSG(3,548,12,1,1,' ',0)
+         GO TO 2000
+      END IF
+      IF(STNID.NE.STNWANTED.OR.YRMON.LT.STRTYRMO) GO TO 200
+      IF (IELEM.NE.ELEM(1).AND.IELEM.NE.ELEM(2))  GO TO 200
+         RECCOUNT = RECCOUNT + 1
+         HELEM = IELEM
+         HYEAR = YEAR 
+         HMONTH = MONTH
+         HDAY = DAY
+         DO 250 IDAY = 1,NUMLOOP
+  250       HVALUE(IDAY) = VALUE(IDAY)
+C
+C    THE INITIAL RECORD HAS BEEN FOUND - PROCESS THE OTHERS
+C
+      DO 500 IREC=1,999999  
+$INCLUDE:'READAREC.INC'
+         NRECCOUNT = NRECCOUNT + 1
+         CALL LOCATE(24,15,IERR)
+         WRITE(OUTCNT(1),'(I7)') NRECCOUNT
+         CALL CWRITE(OUTCNT,12,IERR)
+         IF (RTNCODE.EQ.'1'.OR.STNID.GT.STNWANTED.OR.
+     +         (STNID.EQ.STNWANTED.AND.YRMON.GT.ENDYRMO)) THEN
+            GO TO 501
+         ELSE IF (STNID.NE.STNWANTED.OR.YRMON.LT.STRTYRMO.OR.
+     +        YRMON.GT.ENDYRMO)THEN
+            GO TO 500
+         END IF
+         IF (IELEM.EQ.ELEM(1).OR.IELEM.EQ.ELEM(2)) THEN
+            IF (IELEM.NE.HELEM) THEN
+               IF (YEAR.EQ.HYEAR.AND.MONTH.EQ.HMONTH.AND.DAY.EQ.HDAY)
+     +                                                            THEN
+                  IF(YEAR.LT.LOWYEAR) LOWYEAR = YEAR
+                  IF(YEAR.GT.HIGHYEAR) HIGHYEAR = YEAR
+                  RECCOUNT = RECCOUNT + 1
+                  CALL LOCATE(24,44,IERR)
+                  WRITE(OUTCNT(1),'(I7)') RECCOUNT
+                  CALL CWRITE(OUTCNT,12,IERR)
+                  IF (IELEM.EQ.ELEM(1)) THEN
+                     NELEM = 1
+                     NHELEM = 2
+                  ELSE
+                     NELEM = 2
+                     NHELEM = 1
+                  END IF
+                  DO 300 I = 1,NUMLOOP 
+                     IF (VALUE(I).NE.-99999.AND.HVALUE(I).NE.-99999)THEN
+                        REALVALUE = VALUE(I)
+                        IF (REALVALUE.LT.MINVALUE(NELEM))
+     +                     REALVALUE = MINVALUE(NELEM) - .001
+                        IF (REALVALUE.GE.MAXVALUE(NELEM)) THEN
+                           INDEX = IRANGE(NELEM)
+                        ELSE
+                           INDEX = ((REALVALUE - MINVALUE(NELEM) +
+     +                       GROUPSIZE(NELEM)) / GROUPSIZE(NELEM)) + 1
+                        END IF
+                        REALVALUE = HVALUE(I)
+                        IF (REALVALUE.LT.MINVALUE(NHELEM))
+     +                     REALVALUE = MINVALUE(NHELEM) - .001
+                        IF (REALVALUE.GE.MAXVALUE(NHELEM)) THEN
+                           HINDEX = IRANGE(NHELEM)
+                        ELSE
+                           HINDEX = ((REALVALUE - MINVALUE(NHELEM) +
+     +                       GROUPSIZE(NHELEM)) / GROUPSIZE(NHELEM)) + 1
+                        END IF
+                        IF (IELEM.EQ.ELEM(1)) THEN
+                           INDEX1 = INDEX
+                           INDEX2 = HINDEX
+                        ELSE
+                           INDEX1 = HINDEX
+                           INDEX2 = INDEX
+                        END IF
+
+                        COUNT(MONTH,INDEX1,INDEX2) = 
+     +                        COUNT(MONTH,INDEX1,INDEX2) + 1
+                     END IF
+  300             CONTINUE    
+               ELSE
+                  HELEM = IELEM
+                  HYEAR = YEAR 
+                  HMONTH = MONTH
+                  DO 350 IDAY = 1,NUMLOOP
+                     HVALUE(IDAY) = VALUE(IDAY)
+  350             CONTINUE
+               END IF
+            ELSE
+               RECCOUNT = RECCOUNT + 1
+               HELEM = IELEM
+               HYEAR = YEAR 
+               HMONTH = MONTH
+               HDAY = DAY
+               DO 400 IDAY = 1,NUMLOOP
+                  HVALUE(IDAY) = VALUE(IDAY)
+  400          CONTINUE
+            END IF
+         END IF
+  500 CONTINUE         
+  501 CONTINUE
+C-----------------------------------------------------------------------
+C        ENSURE ENOUGH DATA HAS BEEN READ BEFORE PRINTING RESULTS      |
+C-----------------------------------------------------------------------
+      IF (RECTYPE.EQ.'DLY') THEN   
+         MINREC = 24
+      ELSE
+         MINREC = 62
+      END IF 
+      IF (RECCOUNT.LT.MINREC) THEN
+         CALL CLRMSG(3)
+         CALL CLRMSG(2)
+         WRITE(MSGLIN(2),'(I3)') RECCOUNT
+         CALL WRTMSG(3,156,12,1,1,MSGLIN(2),3)
+         GO TO 2000
+      END IF
+      CALL LOCATE(24,60,IERR)
+      WRITE(*,*) ' '
+      WRITE(*,*) 'Printing...'
+C-----------------------------------------------------------------------
+C     GET THE STATION NAME                                             |
+C-----------------------------------------------------------------------
+      NAMDATE = INT4(HIGHYEAR)*10000 
+C-----------------------------------------------------------------------
+C    COMPUTE THE ANNUAL SUMMARY OF THE MONTHLY VALUES
+C-----------------------------------------------------------------------
+      DO 650 IMON = 1,12
+         DO 650 I = 1,NUM1GROUPS
+            DO 650 J = 1,NUM2GROUPS
+               COUNT(13,I,J) = COUNT(13,I,J) + COUNT(IMON,I,J)
+  650 CONTINUE  
+C----------------------------------------------------------------------
+C   PROCESS EACH MONTH IF THAT HAS BEEN REQUESTED OTHERWISE PROCESS
+C      ONLY THE TOTAL SUMMARY
+C----------------------------------------------------------------------     
+      IF (REPLY.EQ.'M') THEN
+         ISTART = 1
+      ELSE
+         ISTART = 13
+      END IF
+      DO 1800 IMON = ISTART,13
+         TOTAL = 0
+         ILINE = 1
+         NPAGE = NPAGE + 1
+         DO 670 I = 1,NUM1GROUPS
+            SUB1TOTAL(I) = 0
+  670    CONTINUE
+         DO 680 J = 1,NUM2GROUPS
+            SUB2TOTAL(J) = 0
+  680    CONTINUE
+      DO 690 I = 1,2
+         DO 690 J = 2, IRANGE(I)-1 
+            BEGINGROUP(I,J) = MINVALUE(I) + GROUPSIZE(I) * (J-2)
+            ENDGROUP(I,J) = BEGINGROUP(I,J) + GROUPSIZE(I) - .01
+  690 CONTINUE
+C
+C       SUMMARIZE THE RESULTS AND COMPUTE PERCENT FREQUENCIES
+C  
+         DO 700 I = 1, NUM1GROUPS
+            DO 700 J = 1, NUM2GROUPS
+               TOTAL = TOTAL + COUNT(IMON,I,J)
+               SUB1TOTAL(I) = SUB1TOTAL(I) + COUNT(IMON,I,J)
+               SUB2TOTAL(J) = SUB2TOTAL(J) + COUNT(IMON,I,J)
+  700    CONTINUE
+         DO 750 I = 1, NUM1GROUPS
+            SUB1FREQ(I) = SUB1TOTAL(I)*100.0 / FLOAT(TOTAL)
+            DO 750 J = 1, NUM2GROUPS
+               FREQUENCY(I,J) = COUNT(IMON,I,J)*100.0 / FLOAT(TOTAL)
+  750    CONTINUE   
+         DO 800 J = 1, NUM2GROUPS
+            SUB2FREQ(J) = SUB2TOTAL(J)*100.0 / FLOAT(TOTAL)
+  800    CONTINUE
+C
+C   ** DETERMINE NUMBER OF LINES PER PAGE
+C
+         NLINE = IRANGE(1)*3 + 26
+         IF (NLINE.GE.MAXLINE) THEN
+            NEWPAGE = .TRUE.
+         ELSE
+            NEWPAGE = .FALSE.
+         END IF
+C
+C   **  SET PRINTER IN COMPRESSED MODE
+C 
+         WRITE(50,'(1X,8A1)') SETSML
+C
+C   **  PRINT THE RESULTS
+C 
+C   **  WRITE THE OUTPUT TITLE, HEADER - STATION-ID, MONTH, NAME ETC
+C
+         CALL PRNTITLE(IRANGE,STNWANTED,NAMDATE,MONNAME,IMON,
+     +            LOWYEAR,HIGHYEAR,ISPACES,ELEMNAME,BEGINGROUP,ENDGROUP,
+     +            MINVALUE,MAXVALUE,TLLEN,TLTXT,MSGLIN,NEWPAGE,REPLY,
+     +            NPAGE,FIRSTCALL)
+         IF (FIRSTCALL) THEN
+             FIRSTCALL = .FALSE.
+         END IF
+         WRITE(50,1200) MINVALUE(1),(COUNT(IMON,1,J),J=1,IRANGE(2))
+     +     ,SUB1TOTAL(1)
+         WRITE(50,1210) (FREQUENCY(1,J),J=1,IRANGE(2)),SUB1FREQ(1)
+         DO 1300 I = 2, IRANGE(1)-1
+            ILINE = ILINE + 1
+            WRITE(50,1250) BEGINGROUP(1,I),ENDGROUP(1,I)
+     +           ,(COUNT(IMON,I,J),J=1,IRANGE(2)),SUB1TOTAL(I)
+            WRITE(50,1210) (FREQUENCY(I,J),J=1,IRANGE(2)),SUB1FREQ(I)
+            LINECNT = ILINE*3 + 27
+            IF (LINECNT.EQ.MAXLINE.OR.LINECNT+1.EQ.MAXLINE.OR.LINECNT+2
+     +          .EQ.MAXLINE) THEN
+                    NPAGE = NPAGE + 1
+                    WRITE(50,1411) (DASHES,J=1,IRANGE(2)+1)
+                    CALL PRNTITLE(IRANGE,STNWANTED,NAMDATE,MONNAME,IMON,
+     +                   LOWYEAR,HIGHYEAR,ISPACES,ELEMNAME,BEGINGROUP,
+     +                   ENDGROUP,MINVALUE,MAXVALUE,TLLEN,TLTXT,MSGLIN,
+     +                   NEWPAGE,REPLY,NPAGE,FIRSTCALL)
+            END IF
+ 1300    CONTINUE
+         WRITE(50,1400) MAXVALUE(1),(COUNT(IMON,IRANGE(1),J)
+     +       ,J=1,IRANGE(2)),SUB1TOTAL(IRANGE(1))
+         WRITE(50,1210) (FREQUENCY(IRANGE(1),J),J=1,IRANGE(2))
+     +       ,SUB1FREQ(IRANGE(1))
+         WRITE(50,1410) (DBLINES,J=1,IRANGE(2)+1)
+         WRITE(50,1500) TLTXT(14),(SUB2TOTAL(J),J=1,IRANGE(2)),TOTAL
+         FREQTOTAL = 100.00
+         WRITE(50,1510) (SUB2FREQ(J),J=1,IRANGE(2)),FREQTOTAL
+         WRITE(50,1411) (DASHES,J=1,IRANGE(2)+1)
+         WRITE(50,1600) MSGLIN(4),MSGLIN(5)
+ 1800 CONTINUE
+C-----------------------------------------------------------------------
+ 2000 CONTINUE
+C
+C    RESET PRINTER AND SET TO NORMAL MODE
+C
+      IF ( LASERFLG ) THEN
+         WRITE(50,'(1X,9A1)') PAGEFD,LJRESET
+      ELSE
+         WRITE(50,'(1X,9A1)') PAGEFD,SETNRM
+      END IF
+      CLOSE(50)
+C
+      STOP ' '
+C
+C   FORMAT STATEMENTS
+C
+ 1200 FORMAT(/,9X,'<',F6.2,2X,12(2X,I5,2X),:,2X,I5)
+ 1210 FORMAT(18X,12(2X,F5.1,2X),:,2X,F5.1)
+ 1250 FORMAT(/,2X,F6.2,' -',F6.2,2X,12(2X,I5,2X),:,2X,I5)
+ 1400 FORMAT(/,7X,'>= ',F6.2,2X,12(2X,I5,2X),:,2X,I5)
+ 1410 FORMAT(1X,17('Í'),12A9,:,A7)
+ 1411 FORMAT(1X,17('Ä'),12A9,:,A7)
+ 1500 FORMAT(1X,A12,5X,12(2X,I5,2X),:,2X,I5)
+ 1510 FORMAT(18X,12(2X,F5.1,2X),:,2X,F5.1)
+ 1600 FORMAT(/,10X,A70,/,10X,A60)    
+      END
+
+$PAGE
+**********************************************************************
+ 
+      SUBROUTINE ELEMGRP(ELEM,ELEMNAME,MINVALUE,MAXVALUE,GROUPSIZE,
+     +       IRANGE,ITYPE,HELP2,RTNCODE)
+C
+C   ROUTINE TO BUILD A DATA ENTRY FORM TO ENTER THE ELEMENT GROUP
+C     INFORMATION, RETRIEVE THE RESULTS, AND CHECK FOR ERRORS
+C 
+      PARAMETER (NUM1GROUPS=20, NUM2GROUPS=12)
+
+      INTEGER*2 ELEM(2)
+      REAL*4    MINVALUE(2),MAXVALUE(2),GROUPSIZE(2)
+      INTEGER*2 IRANGE(2)
+      CHARACTER*1 RTNCODE
+      CHARACTER*2 RTNFLAG
+      CHARACTER*16 ELEMNAME(2)
+      CHARACTER*64 HELP2
+      CHARACTER*100 FLDREC(2)
+C
+C   VARIABLES TO DEFINE THE DATA ENTRY FORM
+C
+      CHARACTER*72 MESSAGE
+      CHARACTER*20 FIELD(10)
+      EQUIVALENCE (FIELD,FLDREC)
+      DATA FIELD /10*'      '/
+C
+      RTNCODE = '0'
+      CALL POSLIN(IROW,ICOL)
+   20 CONTINUE
+      WRITE(RTNFLAG,'(A1,I1)') 'E',ITYPE      
+      CALL LOCATE(IROW,ICOL,IERR)
+      CALL GETFRM('CORR2GRP',HELP2,FIELD,20,RTNFLAG)
+      CALL POSLIN(IROW,ICOL)
+      IF (RTNFLAG.EQ.'4F') THEN
+         RTNCODE = '1'
+         RETURN
+      END IF
+      DO 30 I = 1,10
+         IF (FIELD(I).EQ.'  ') THEN
+            GO TO 20
+         END IF
+30    CONTINUE
+      IERROR = 0 
+      DO 120 I = 1,2
+         READ(FLDREC(I),50) ELEM(I),ELEMNAME(I),GROUPSIZE(I),
+     +       MINVALUE(I),MAXVALUE(I)
+   50    FORMAT(BN,I3,17X,A16,4X,3(F6.0,14X))
+         IF (ELEMNAME(I).EQ.'       ') THEN
+            IERROR = 1
+         END IF
+         IF (GROUPSIZE(I).LE.0.) THEN
+            IERROR = 1
+            CALL WRTMSG(3,334,12,1,0,' ',0)
+            GO TO 120
+         ENDIF   
+         IRANGE(I) = ((MAXVALUE(I) - MINVALUE(I))/ GROUPSIZE(I)) + 2
+         NGRP = 0
+         IF (I.EQ.1.AND.IRANGE(I).GT.NUM1GROUPS) THEN
+            NGRP = NUM1GROUPS
+         ELSE IF (I.EQ.2.AND.IRANGE(I).GT.NUM2GROUPS) THEN
+            NGRP = NUM2GROUPS
+         END IF
+         IF (NGRP.GT.0) THEN
+            WRITE(MESSAGE,500) ELEM(I),IRANGE(I),NGRP
+  500       FORMAT(1X,I3.3,1X,'--',I4,1X,'--',1X,I2)          
+            LGTH = LEN(MESSAGE)
+            IERROR = 1
+            CALL WRTMSG(3,90,12,1,1,MESSAGE,LGTH)
+         ENDIF   
+         MAXVALUE(I) = MINVALUE(I) + (GROUPSIZE(I) * (IRANGE(I) - 2))
+  120 CONTINUE
+      IF (IERROR.GT.0) THEN
+         GO TO 20
+      END IF
+C
+      CLOSE(35)
+      CLOSE(50)
+      RETURN
+C
+      END
+$PAGE
+**********************************************************************
+ 
+      SUBROUTINE PRNTITLE(IRANGE,STNWANTED,NAMDATE,MONNAME,IMON,
+     +        LOWYEAR,HIGHYEAR,ISPACES,ELEMNAME,BEGINGROUP,ENDGROUP,
+     +        MINVALUE,MAXVALUE,TLLEN,TLTXT,MSGLIN,NEWPAGE,REPLY,
+     +        NPAGE,FIRSTCALL)
+C
+C  THIS ROUTINE BUILDS THE OUTPUT TITLES - STATION NAME, MONTH,
+C     DISTRICT, LATITUDE, LONGITUDE AND ELEVATION AS WELL AS THE
+C     HEADER - ELEMENT NAME AND THE SIZE OF THE GROUP AS SPECIFIED
+C
+      PARAMETER (NUM1GROUPS=20, NUM2GROUPS=12)
+C
+C   VARIABLES FOR STATION INFORMATION
+C
+      CHARACTER*24 STNABRV
+      CHARACTER*20 DISTRICT
+      CHARACTER*8 LON
+      CHARACTER*7 LAT
+      CHARACTER*1 REPLY,CCVAL
+      REAL ELEV
+C
+C   VARIABLES FOR TITLE ,HEADER ETC
+C
+      REAL*4 BEGINGROUP(2,NUM1GROUPS),ENDGROUP(2,NUM1GROUPS)
+      REAL*4 MINVALUE(2),MAXVALUE(2)
+      CHARACTER*9 DASHES
+      CHARACTER*16 ELEMNAME(2), MONNAME(13)
+      CHARACTER*78 HLDTXT
+      CHARACTER*(*) MSGLIN(*)
+      CHARACTER*(*) TLTXT(*)
+
+      CHARACTER*8 STNWANTED
+      CHARACTER*114 PRTLIN
+      INTEGER*2 IRANGE(2),LOWYEAR,HIGHYEAR, TLLEN(*),NPAGE
+      INTEGER*4 NAMDATE
+      LOGICAL NEWPAGE,FIRSTCALL
+      DATA DASHES /'ÄÄÄÄÄÄÄÄÄ'/
+C
+      ISPACES = IRANGE(2)*9/2
+      DO 900 I2 = 78,1,-1
+      IF (MSGLIN(3)(I2:I2).NE.' ') THEN
+         LEN1 = I2
+         GO TO 910
+      END IF
+  900 CONTINUE
+  910 CONTINUE            
+C
+C   WRITE THE OUTPUT TITLE
+C
+      CALL RDGEOG(STNWANTED,NAMDATE,STNABRV,DISTRICT,LAT,LON,ELEV
+     +           ,RTNCODE)
+
+      PRTLIN = '      '
+      PRTLIN(ISPACES:ISPACES+LEN1-1) = MSGLIN(3)(1:LEN1)        
+      LGTH = LNG (PRTLIN)
+      IF (FIRSTCALL) THEN
+         CCVAL = ' '
+      ELSE
+         CCVAL = '1'
+      ENDIF            
+      IF (REPLY.EQ.'M' .OR. NEWPAGE) THEN
+         WRITE(50,1000) CCVAL,TLTXT(11)(1:TLLEN(11)),NPAGE
+         WRITE(50,1001) PRTLIN(1:LGTH)
+      ELSE 
+         WRITE(50,1002) CCVAL,PRTLIN(1:LGTH)
+      END IF
+C
+C   WRITE THE ELEMENT NAMES 
+C
+      PRTLIN = '       '
+      PRTLIN(ISPACES:) = ELEMNAME(1)
+      PRTLIN(ISPACES+17:) = TLTXT(10)(1:TLLEN(10))
+      LGTH = ISPACES+17+TLLEN(10)+2
+      PRTLIN(LGTH:) = ELEMNAME(2)
+      LGTH = LNG(PRTLIN)
+      WRITE(50,1001) PRTLIN(1:LGTH)
+C
+C   WRITE THE OUTPUT TITLE AND HEADER - STATION NAME, MONTH , PERIOD,
+C       DISTRICT, LATITUDE, LONGITIDE AND ELEVATION
+C
+      PRTLIN = ' '
+      ITXT = TLLEN(1) + 9
+      PRTLIN(10:ITXT) = TLTXT(1)(1:TLLEN(1))
+      ITXT = ITXT + 1
+      PRTLIN(ITXT:ITXT) = ':'
+      ITXT = ITXT + 2
+      PRTLIN(ITXT:ITXT+7) = STNWANTED
+
+      ITXT = ITXT + 18
+      NTXT = ITXT + TLLEN(3) -1
+      PRTLIN(ITXT:NTXT) = TLTXT(3)(1:TLLEN(3))
+      PRTLIN(NTXT+1:NTXT+1) = ':'
+      PRTLIN(NTXT+3:NTXT+15) = MONNAME(IMON)
+
+      ITXT = ITXT + 25
+      NTXT = ITXT + TLLEN(4) -1
+      PRTLIN(ITXT:NTXT) = TLTXT(4)(1:TLLEN(4))
+      PRTLIN(NTXT+1:NTXT+1) = ':'
+      WRITE(HLDTXT,'(I4,''-'',I4)') LOWYEAR,HIGHYEAR
+
+      ITXT = NTXT + 3
+      NTXT = ITXT + 8
+      PRTLIN(ITXT:NTXT) = HLDTXT(1:9)
+      LGTH = LNG (PRTLIN)
+      WRITE(50,'(A,/)') PRTLIN(1:LGTH)
+
+      PRTLIN = ' '
+      ITXT = TLLEN(2) + 9
+      PRTLIN(10:ITXT) = TLTXT(2)(1:TLLEN(2))
+      ITXT = ITXT + 1
+      PRTLIN(ITXT:ITXT) = ':'
+      ITXT = ITXT + 2
+      PRTLIN(ITXT:ITXT+24) = STNABRV
+      LGTH= LNG (PRTLIN)
+      WRITE(50,'(A)') PRTLIN(1:LGTH)
+
+      PRTLIN = ' '
+      ITXT = TLLEN(5) + 9
+      PRTLIN(10:ITXT) = TLTXT(5)(1:TLLEN(5))
+      ITXT = ITXT + 1
+      PRTLIN(ITXT:ITXT) = ':'
+      ITXT = ITXT + 2
+      PRTLIN(ITXT:ITXT+20) = DISTRICT
+      LGTH = LNG (PRTLIN)
+      WRITE(50,'(A)') PRTLIN(1:LGTH)
+
+      PRTLIN = ' '
+      ITXT = TLLEN(6) + 9
+      PRTLIN(10:ITXT) = TLTXT(6)(1:TLLEN(6))
+      ITXT = ITXT + 1
+      PRTLIN(ITXT:ITXT) = ':'
+      ITXT = ITXT + 2
+      PRTLIN(ITXT:ITXT+2) = LAT(1:2)
+      ITXT = ITXT + 3
+      PRTLIN(ITXT:ITXT+2) = LAT(3:4)
+      ITXT = ITXT + 3
+      PRTLIN(ITXT:ITXT+3) = LAT(5:7)
+      ITXT = ITXT + 11
+      NTXT = ITXT + TLLEN(7) - 1
+      PRTLIN(ITXT:NTXT) = TLTXT(7)(1:TLLEN(7))
+      ITXT = NTXT + 1
+      PRTLIN(ITXT:ITXT) = ':'
+      ITXT = ITXT + 2
+      PRTLIN(ITXT:ITXT+3) = LON(1:3)
+      ITXT = ITXT + 4
+      PRTLIN(ITXT:ITXT+2) = LON(4:5)
+      ITXT = ITXT + 3
+      PRTLIN(ITXT:ITXT+3) = LON(6:8)
+      LGTH = LNG (PRTLIN)
+      WRITE(50,'(A)') PRTLIN(1:LGTH)
+     
+      PRTLIN = ' '
+      ITXT = TLLEN(8) + 9
+      PRTLIN(10:ITXT) = TLTXT(8)(1:TLLEN(8))
+      ITXT = ITXT + 1
+      PRTLIN(ITXT:ITXT) = ':'
+      ITXT = ITXT + 2
+      WRITE(HLDTXT,'(F7.1)') ELEV
+      PRTLIN(ITXT:ITXT+6) = HLDTXT(1:7)
+      ITXT = ITXT + 8
+      NTXT = ITXT + TLLEN(9) - 1
+      PRTLIN(ITXT:NTXT) = TLTXT(9)(1:TLLEN(9))
+      LGTH = LNG (PRTLIN)
+      WRITE(50,'(A,/)') PRTLIN(1:LGTH)
+C
+C   WRITE THE ELEMENT NAME AND THE SIZE OF GROUPS  
+C
+      PRTLIN = '       '
+      PRTLIN(ISPACES:ISPACES+15) = ELEMNAME(2)
+      LGTH = LNG (PRTLIN)
+      WRITE(50,1120) PRTLIN(1:LGTH)  
+      WRITE(50,1140) (DASHES,J=1,IRANGE(2)+1)
+      WRITE(50,1150) ELEMNAME(1),(BEGINGROUP(2,J),J=2,IRANGE(2)-1)
+
+      PRTLIN = '       '
+      ISKIP = (IRANGE(2)-1)*9
+      PRTLIN(ISKIP:ISKIP+15) = 
+     +                      '   >=      '//TLTXT(12)(1:TLLEN(12))//'   '
+      LGTH = LNG(PRTLIN)
+      WRITE(50,1155)PRTLIN(1:LGTH)
+      WRITE(50,1160) MINVALUE(2),(ENDGROUP(2,J),J=2,IRANGE(2)-1)
+     +       ,MAXVALUE(2)
+
+      PRTLIN = '       '
+      ISKIP = (IRANGE(2)-1)*9
+      PRTLIN(ISKIP:ISKIP+15) = '                  '
+      NTXT = ISKIP + 15
+      ITXT = NTXT - TLLEN(13) 
+      PRTLIN(ITXT:NTXT) = TLTXT(13)(1:TLLEN(13))
+      LGTH = LNG (PRTLIN)
+      WRITE(50,1155) PRTLIN(1:LGTH)
+      WRITE(50,1140) (DASHES,J=1,IRANGE(2)+1)
+      RETURN
+C
+C   FORMAT STATEMENTS
+C
+ 1000 FORMAT(A1,/,121X,A,1X,I2,/)
+ 1001 FORMAT(2X,A,/)
+ 1002 FORMAT(A1,/,2X,A,/)
+ 1120 FORMAT(17X,A)
+ 1140 FORMAT (1X,17('Ä'),12A9,:,A7)
+ 1150 FORMAT(1X,A16,'     <',4X,13(1X,F6.2,'- '))
+ 1155 FORMAT('+',18X,A)
+ 1160 FORMAT(18X,2X,F6.2,1X,13(1X,F6.2,2X))
+      END

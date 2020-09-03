@@ -1,0 +1,491 @@
+$STORAGE:2 
+      PROGRAM EXPOBS
+C      
+C   ROUTINE TO READ DATAEASE CLIMATE DATA FILES AND REFORMAT THE
+C   DATA INTO OBSERVATIONS.  THE ELEMENTS AND FORMAT OF THE 
+C   OBSERVATIONS ARE SET IN FILE P:\DATA\EXPOBS.PRM BY THE USER.
+C
+C  PROGRAM CONTROL VARIABLES
+C
+      PARAMETER (MAXELEM=40, MAXVAR=96, MAXROW=50)
+      CHARACTER*78 MSGLN(6)
+      CHARACTER*64 FILNAME,OUTFILE,OBSFILE
+      CHARACTER*16 RECID, PREVID
+      CHARACTER*8 STARTSTN, ENDSTN 
+      CHARACTER*8 STRTDATE
+      CHARACTER*3 RECTYPE,TYPEDEF(7)
+      CHARACTER*2 REPLY,RTNFLAG,HOURLBL(24)
+      CHARACTER*1 DATASOURCE,OKVAL
+      INTEGER*4 STRTYRMO, ENDYRMO,YRMON, IREC
+      INTEGER*4 RECCOUNT, NRECCOUNT, I4HUNDRD  
+      INTEGER*1 I1HRLBL(96)
+      LOGICAL FOUND(MAXVAR),TEMPFILE,FIRSTPASS
+C
+C  INPUT DATA VARIABLES
+C    
+      CHARACTER*8 STNID 
+      CHARACTER*1 FLAG1(MAXVAR),RTNCODE  
+      REAL*4 VALUE(MAXVAR)
+      INTEGER*2 DDSID,IELEM,YEAR,MONTH,DAY
+C
+C   STORAGE AND OUTPUT VARIABLES
+C
+      INTEGER*4 IVALUE
+      INTEGER*2 OUTELEM(MAXELEM)
+      REAL*4 HLDARRAY(MAXELEM,MAXVAR),OUTFMT(MAXELEM),OUTSCALE(MAXELEM)
+     +      ,MISCODE(MAXELEM)
+      CHARACTER*80 TEXT(MAXROW)
+      CHARACTER*9 OUTVAL(MAXELEM),TSTFMT
+      CHARACTER*8 OUTCNT
+      CHARACTER*6 TMPFMT
+      CHARACTER*4 HLDFMT(MAXELEM)
+      CHARACTER*1 HLDFLAG(MAXELEM,MAXVAR),NULL
+      CHARACTER*1 FMT1(680)
+C      
+      DATA I4HUNDRD/100/
+      DATA TYPEDEF /'MLY','10D','DLY','SYN','HLY','15M','U-A'/
+C
+      NULL = CHAR(0)
+      OUTCNT = '        '
+      FILNAME = 'P:\HELP\EXPOBS.HLP'
+      CALL SETMOD(3,IERR)
+C
+      CALL GETMSG(347,MSGLN(1))
+      CALL GETMSG(348,MSGLN(2))
+      CALL GETMSG(349,MSGLN(3))
+      CALL GETMSG(350,MSGLN(4))
+      CALL GETMSG(351,MSGLN(5))
+      CALL GETMSG(352,MSGLN(6))
+      CALL GETMSG(999,MSGLN)
+C
+   20 CONTINUE
+      CALL CLS
+      CALL LOCATE(1,0,IERR)
+      CALL GETLIMIT(STARTSTN,ENDSTN,STRTYRMO,ENDYRMO,FILNAME,RTNCODE)
+      IF (RTNCODE.NE.'0') THEN
+         CALL LOCATE(23,0,IERR)
+         STOP ' '
+      END IF
+C
+C   READ THE KIND OF DATA TO PROCESS
+C 
+   25 CONTINUE
+      CALL LOCATE(10,7,IERR)
+      CALL DATATYPE(7,4,RECTYPE,NUMLOOP,RTNCODE)
+      IF (RTNCODE.NE.'0') THEN
+         GO TO 20
+      END IF
+C      
+      ITYPE=0
+      DO 28 I=1,7
+         IF (RECTYPE.EQ.TYPEDEF(I)) ITYPE=I
+   28 CONTINUE       
+      IF (ITYPE.EQ.0) GO TO 25
+C
+C   DETERMINE THE SOURCE OF THE INPUT DATA TO BE USED
+C 
+      CALL DATASRC(40,DATASOURCE,RTNCODE)
+      IF (RTNCODE.NE.'0') THEN
+         GO TO 25
+      END IF
+C
+C       ** FOR HOURLY AND SYNOPTIC DATA READ HOUR LABEL VALUES FROM DATAQC.PRM
+C          FOR OTHER DATA TYPES WRITE HOUR LABEL VALUES FROM LOOP INDEX
+C
+      IF (ITYPE.EQ.4 .OR. ITYPE.EQ.5) THEN
+         CALL RDHRLBL(ITYPE,HOURLBL,RTNCODE)
+         IF (RTNCODE.NE.'0') GO TO 20
+         DO 30 I=1,NUMLOOP
+            READ(HOURLBL(I),'(I2)') I1HRLBL(I)
+   30    CONTINUE         
+      ELSE
+         DO 32 I=1,NUMLOOP
+            I1HRLBL(I) = I
+   32    CONTINUE         
+      ENDIF   
+C
+C   READ THE ELEMENTS WANTED IN EACH OUTPUT RECORD FROM FILE
+C   P:\DATA\EXPOBS.xxx WHERE xxx IS THE OBS-TYPE (MLY, DLY, ETC).  THE
+C   FILE SHOULD CONTAIN 1 LINE AND FOUR ENTRIES FOR EACH ELEMENT WANTED.
+C   THE ELEMENTS ARE WRITTEN TO THE OUTPUT RECORD IN THE SAME ORDER AS
+C   THEY APPEAR IN THE FILE.  THERE IS ADDITIONAL INFORMATION IN THE 
+C   FILE (IN LINES 1-12 THAT'S WHY THOSE LINES ARE SKIPPED HERE).
+C
+      OBSFILE = 'P:\DATA\EXPOBS.XXX'
+      OBSFILE(16:18) = RECTYPE
+      TEMPFILE = .FALSE.
+      FIRSTPASS = .TRUE.
+40    CONTINUE
+**************************************************************************
+      OPEN(61,FILE=OBSFILE,STATUS='OLD',FORM='FORMATTED')
+      DO 42 I1 = 1,12
+         READ(61,*)
+42    CONTINUE
+      DO 45 I1 = 1,MAXELEM
+         READ(61,*,END=50) OUTELEM(I1),OUTFMT(I1),OUTSCALE(I1)
+     +                    ,MISCODE(I1)
+         NUMELEM = I1
+45    CONTINUE
+50    CONTINUE
+      CLOSE(61)
+C
+C   DISPLAY THE DEFAULT OBSERVATION FORMAT SPECIFIED IN THE
+C   PARAMETER FILE
+C
+      CALL CLS
+      CALL LOCATE(1,0,IERR)
+      WRITE(OUTCNT,'(I2)') NUMELEM
+      MSGLN(1)(12:13) = OUTCNT(1:2)
+      WRITE(*,'(1X,A15,A3,1X,A58)') 'P:\DATA\EXPOBS.',RECTYPE,MSGLN(1)
+      WRITE(*,'(1X,A60,/)') MSGLN(2)
+      WRITE(*,'(4X,A32,11X,A32)') MSGLN(3),MSGLN(3)
+      ILINE = NUMELEM / 2
+      IF (ILINE*2.LT.NUMELEM) THEN
+         ILINE = ILINE + 1
+      END IF
+      DO 60 I1 = 1,ILINE
+         I2 = I1 + ILINE
+         IF (I2.LE.NUMELEM) THEN
+            WRITE(*,55) I1,OUTELEM(I1),OUTFMT(I1),OUTSCALE(I1)
+     +         ,MISCODE(I1),I2,OUTELEM(I2),OUTFMT(I2)
+     +         ,OUTSCALE(I2),MISCODE(I2)
+         ELSE
+            WRITE(*,55) I1,OUTELEM(I1),OUTFMT(I1),OUTSCALE(I1)
+     +          ,MISCODE(I1)
+         END IF
+55       FORMAT (1X,I2,'. ',I3.3,6X,F3.1,4X,F5.2,2X,F8.1,8X,I2
+     +       ,'. ',I3.3,6X,F3.1,4X,F5.2,2X,F8.1)
+60    CONTINUE
+C
+C   CHECK THAT THE MISSING VALUES SPECIFIED CAN BE OUTPUT WITH THE
+C   FORMATS GIVEN FOR THOSE ELEMENTS
+C
+      DO 70 J1 = 1,NUMELEM
+         WRITE(TMPFMT,'(A2,F3.1,A1)') '(F',OUTFMT(J1),')'
+         IF (TMPFMT(5:5).EQ.'0') THEN
+            TMPFMT(2:2) = 'I'
+            TMPFMT(4:5) = '  '
+            IVALUE = INT4(MISCODE(J1))
+            WRITE(TSTFMT,TMPFMT) IVALUE
+         ELSE
+            WRITE(TSTFMT,TMPFMT) MISCODE(J1)
+         END IF         
+         IF (TSTFMT(1:1).EQ.'*') THEN
+            WRITE(OUTCNT,'(I3.3)') OUTELEM(J1)
+            MSGLN(4)(14:16) = OUTCNT(1:3)
+            WRITE(*,'(/,1X,A78)') MSGLN(4)
+         END IF
+70    CONTINUE
+C
+C   ALLOW THE USER THE OPTION TO CHANGE THE DEFAULT VALUES GIVEN IN 
+C   THE PARAMETER FILE
+C
+90    CONTINUE
+      IF (FIRSTPASS) THEN  
+         FIRSTPASS = .FALSE.
+         WRITE(*,'(//,1X,A78)') MSGLN(5)
+         WRITE(*,'(1X,A50),\)') MSGLN(6)
+   92    REPLY = ' '
+         CALL GETCHAR(3,REPLY)
+         IF (REPLY(2:2).EQ.' ') THEN
+            IF (REPLY(1:1).LT.'1' .OR. REPLY(1:1).GT.'9') THEN
+               CALL BEEP
+               GO TO 92
+            ENDIF   
+         ENDIF   
+         CALL POSLIN(IROW,ICOL)
+      ELSE
+         CALL LOCATE(IROW+1,2,IERR)
+         RTNCODE = '0'
+         CALL OKREPLY(OKVAL,RTNCODE)
+         IF (OKVAL.EQ.'Y') THEN
+            REPLY = '1 '
+         ELSE IF (OKVAL.EQ.'N') THEN
+            IF (TEMPFILE) THEN
+               REPLY = '2 '
+            ELSE
+               REPLY = '3 ' 
+            END IF
+         END IF
+      END IF
+C
+C   CALL EDPAGE TO CHANGE THE VALUES - COPY TO TEMPORARY FILE 1ST IF
+C   REQUESTED
+C
+      IF (REPLY.EQ.'3 ') THEN
+         CALL EDPAGE(TEXT,MAXROW,OBSFILE)
+         GO TO 40
+      ELSE IF (REPLY.EQ.'2 ') THEN
+         IF (.NOT.TEMPFILE) THEN
+            OPEN(61,FILE=OBSFILE,STATUS='OLD')
+            OBSFILE = 'P:\DATA\EXPOBS.TMP'
+            OPEN(62,FILE=OBSFILE,STATUS='UNKNOWN',FORM='FORMATTED')
+            DO 100 I = 1,MAXROW
+               READ(61,'(A80)',END=105) TEXT(1)
+               WRITE(62,'(A80)') TEXT(1)
+100         CONTINUE
+105         CLOSE(61)
+            CLOSE(62)
+         END IF
+         CALL EDPAGE(TEXT,MAXROW,OBSFILE)
+         TEMPFILE = .TRUE.
+         GO TO 40
+      ELSE IF (REPLY.EQ.'4F' .OR. RTNCODE.EQ.'1') THEN
+         GO TO 20
+      ELSE IF (REPLY.NE.'1 ') THEN
+         GO TO 90
+      END IF
+C
+      IF (TEMPFILE) THEN
+         OPEN(61,FILE=OBSFILE,STATUS='OLD',FORM='FORMATTED')
+         CLOSE (61,STATUS='DELETE') 
+      END IF
+C
+C   BUILD THE OUTPUT FORMAT STATEMENT
+C
+      FMT1(1)(1:680) = '(A8,'','',A4,3('','',I2.2)  '
+      IF (RECTYPE.EQ.'MLY'.OR.RECTYPE.EQ.'10D') THEN
+         FMT1(12) = '1'
+      ELSE IF (RECTYPE.EQ.'DLY') THEN
+         FMT1(12) = '2'
+      END IF         
+      DO 120 J1 = 1,NUMELEM
+         WRITE(TMPFMT,'(F3.1)') OUTFMT(J1)
+         HLDFMT(J1)(2:4) = TMPFMT(1:3)
+         IF (TMPFMT(3:3).EQ.'0') THEN
+C             .. SPECIFIED FORMAT WAS w.0 -- USE INTEGER FORMAT TO ELIMINATE
+C                OUTPUT OF DECIMAL -- INTEGER FORMAT IS Iw.1 WHICH OUTPUTS A
+C                ZERO INSTEAD OF A BLANK IF THE VALUE IS 0. 
+            HLDFMT(J1)(1:1) = 'I'
+            HLDFMT(J1)(3:4) = '.1'
+         ELSE
+C             .. SPECIFIED FORMAT WAS w.d WHERE d IS GREATER THAN 0 -- USE     
+C                REAL FORMAT
+            HLDFMT(J1)(1:1) = 'F'
+         END IF 
+         J2 = 14*(J1-1) + 24
+         FMT1(J2)(1:6) = ','','',A'
+         FMT1(J2)(7:7) =  TMPFMT(1:1)  
+         FMT1(J2)(8:14) = ','','',A1'
+120   CONTINUE
+      FMT1(J2)(15:15) = ')'
+C
+C   OPEN THE INPUT AND OUTPUT DATA FILES 
+C
+      CALL CLS
+      CALL LOCATE(1,1,IERR)
+C
+C   OPEN THE INPUT FILE - OPENPOS REQUIRES FTN 4.0 OR LATER.  IF USING
+C   FTN 3.3 YOU MUST REPLACE CALL TO OPENPOS WITH CALL TO OPENINPUT
+C
+      WRITE(STRTDATE,'(I6)') STRTYRMO
+      CALL OPENPOS(RECTYPE,DATASOURCE,STARTSTN,STRTDATE)
+
+C      CALL OPENINPUT(RECTYPE,DATASOURCE)
+      OUTFILE = ' '
+      IF (RECTYPE.EQ.'MLY'.OR.RECTYPE.EQ.'10D') THEN
+          STRTYRMO = (STRTYRMO/I4HUNDRD)*I4HUNDRD
+          ENDYRMO = (ENDYRMO/I4HUNDRD)*I4HUNDRD
+      END IF
+140   CONTINUE
+      JROW = 12
+      CALL WRTMSG(25-JROW,309,14,0,0,' ',0)
+      CALL LOCATE(JROW,58,IERR)
+      CALL GETSTR(0,OUTFILE,22,15,1,RTNFLAG)
+      DO 160 I1 = 1,22
+         IF (OUTFILE(I1:I1).EQ.'/') THEN
+            OUTFILE(I1:I1) = '\'
+         END IF
+160   CONTINUE            
+      IF (OUTFILE.EQ.'  '.OR.RTNFLAG.EQ.'4F') THEN
+         GO TO 20
+      END IF
+C
+      OPEN(75,FILE=OUTFILE,STATUS='UNKNOWN',FORM='FORMATTED'
+     +       ,IOSTAT=IOCHK)
+      IF (IOCHK.NE.0) THEN
+         CALL WRTMSG(3,157,12,1,0,' ',0)
+         CALL LOCATE(23,0,IERR)
+         CALL CLRMSG(2)
+         DO 170 I1 = 1,22
+            IF (OUTFILE(I1:I1).EQ.'\') THEN
+               OUTFILE(I1:I1) = '/'
+            END IF
+170      CONTINUE            
+         CALL WRTSTR(OUTFILE,22,12,0)
+         WRITE(OUTCNT,'(2X,I4)') IOCHK
+         CALL WRTSTR(OUTCNT,6,12,0)
+         GO TO 140
+      END IF
+      ENDFILE (75)
+      REWIND (75)
+C
+C   INITIALIZE
+C
+      PREVID = '        00000000'
+      NRECCOUNT = 0          
+      RECCOUNT = 0
+      DAY = 0
+      MONTH = 0
+C
+C  WRITE THE RUNNING TOTAL LINE
+C
+      CALL CLRMSG(1)
+      CALL LOCATE(24,0,IERR)
+      CALL WRTSTR('Records Read -          Records processed - '
+     +             ,44,14,0)
+C-----------------------------------------------------------------------
+C                   PROCESS THE DATA RECORDS                           |
+C-----------------------------------------------------------------------
+      DO 500 IREC=1,999999  
+         IF (RECTYPE.EQ.'MLY') THEN
+            CALL READMLY(DDSID,STNID,IELEM,YEAR,VALUE,FLAG1
+     +          ,RTNCODE)
+         ELSE IF (RECTYPE.EQ.'10D') THEN
+            CALL READ10D(DDSID,STNID,IELEM,YEAR,VALUE,FLAG1
+     +          ,RTNCODE)
+         ELSE IF (RECTYPE.EQ.'DLY') THEN
+            CALL READDLY(DDSID,STNID,IELEM,YEAR,MONTH,VALUE,FLAG1
+     +          ,RTNCODE)
+         ELSE IF (RECTYPE.EQ.'SYN') THEN
+            CALL READSYN(DDSID,STNID,IELEM,YEAR,MONTH,DAY,VALUE,FLAG1
+     +          ,RTNCODE)
+         ELSE IF (RECTYPE.EQ.'HLY') THEN
+            CALL READHLY(DDSID,STNID,IELEM,YEAR,MONTH,DAY,VALUE,FLAG1
+     +          ,RTNCODE)
+         ELSE IF (RECTYPE.EQ.'15M') THEN
+            CALL READ15M(DDSID,STNID,IELEM,YEAR,MONTH,DAY,VALUE,FLAG1
+     +          ,RTNCODE)
+         END IF
+         NRECCOUNT = NRECCOUNT + 1
+         CALL LOCATE(24,15,IERR)
+         WRITE(OUTCNT,'(I7)') NRECCOUNT
+         OUTCNT(8:8) = CHAR(0)
+         CALL CWRITE(OUTCNT,12,IERR)
+         RYEAR = YEAR
+         RMON = MONTH
+         RYRMON = RYEAR*100. + RMON
+         YRMON = INT4(RYRMON)
+         IF (RTNCODE.EQ.'1'.OR.STNID.GT.ENDSTN.OR.
+     +         (STNID.EQ.ENDSTN.AND.YRMON.GT.ENDYRMO)) THEN
+            GO TO 501
+         ELSE IF (STNID.LT.STARTSTN.OR.YRMON.LT.STRTYRMO.OR.
+     +        YRMON.GT.ENDYRMO)THEN
+            GO TO 500
+         END IF
+C
+         RECCOUNT = RECCOUNT + 1
+         CALL LOCATE(24,42,IERR)
+         WRITE(OUTCNT,'(I7)') RECCOUNT
+         OUTCNT(8:8) = CHAR(0)
+         CALL CWRITE(OUTCNT,12,IERR)
+C
+         WRITE(RECID,'(A8,I4.4,2I2.2)') STNID,YEAR,MONTH,DAY
+C
+C    NEW INPUT RECORD PERIOD HAS BEEN READ - WRITE THE HOLD ARRAY TO
+C    THE OUTPUT FILE AND RE-INITIALIZE.
+C
+         IF (RECID.NE.PREVID) THEN
+            IF (PREVID.NE.'        00000000') THEN
+               DO 200 I1 = 1,NUMLOOP
+                  IF (FOUND(I1)) THEN
+                     DO 180 J1 = 1,NUMELEM
+                        TMPFMT = '(    )'
+                        TMPFMT(2:5) = HLDFMT(J1)
+                        IF (TMPFMT(2:2).EQ.'I') THEN
+C                            .. ROUND VALUES OUTPUT AS INTEGER
+                           CALL IROUND4(HLDARRAY(J1,I1),IVALUE)
+                           WRITE(OUTVAL(J1),TMPFMT) IVALUE
+                        ELSE
+                           WRITE(OUTVAL(J1),TMPFMT) HLDARRAY(J1,I1)
+                        END IF
+180                  CONTINUE
+                     IF (RECTYPE.EQ.'MLY'.OR.RECTYPE.EQ.'10D') THEN
+                        WRITE(75,FMT1) PREVID(1:8),PREVID(9:12),I1
+     +                     ,(OUTVAL(J1),HLDFLAG(J1,I1),J1=1,NUMELEM)
+                     ELSE IF (RECTYPE.EQ.'DLY') THEN
+                        READ(PREVID,'(12X,I2.2)') JMONTH
+                        WRITE(75,FMT1) PREVID(1:8),PREVID(9:12),JMONTH
+     +                     ,I1,(OUTVAL(J1),HLDFLAG(J1,I1),J1=1,NUMELEM)
+                     ELSE
+                        READ(PREVID,'(12X,2I2.2)') JMONTH,JDAY
+                        WRITE(75,FMT1) PREVID(1:8),PREVID(9:12)
+     +                     ,JMONTH,JDAY,I1HRLBL(I1)
+     +                     ,(OUTVAL(J1),HLDFLAG(J1,I1),J1=1,NUMELEM)
+                     END IF
+                  END IF
+200            CONTINUE                                    
+            END IF
+            DO 250 I1 = 1,NUMLOOP
+               FOUND(I1) = .FALSE.
+               DO 250 J1 = 1,NUMELEM
+                  HLDARRAY(J1,I1) = MISCODE(J1)
+                  HLDFLAG(J1,I1) = 'M'
+250         CONTINUE
+            PREVID = RECID
+         END IF
+C
+C   WRITE THE CURRENT ELEMENT INTO THE COLUMN WANTED
+C
+         JCOL = 0
+         DO 300 J = 1,NUMELEM
+            IF (IELEM.EQ.OUTELEM(J)) THEN
+               JCOL = J
+               GO TO 310
+            END IF
+300      CONTINUE    
+310      CONTINUE
+         IF (JCOL.GT.0) THEN
+            DO 350 I1 = 1,NUMLOOP
+               IF (FLAG1(I1).NE.'M') THEN
+                  FOUND(I1) = .TRUE.
+                  HLDARRAY(JCOL,I1) = VALUE(I1)*OUTSCALE(JCOL)
+                  HLDFLAG(JCOL,I1) = FLAG1(I1)
+                  IF (FLAG1(I1).EQ.NULL) THEN
+                     HLDFLAG(JCOL,I1) = ' '
+                  END IF
+               END IF
+350         CONTINUE
+         END IF
+500   CONTINUE         
+501   CONTINUE
+C
+C   WRITE OUT THE FINAL CONTENTS OF THE HOLD ARRAY BEFORE STOPPING
+C 
+      IF (RECCOUNT.GT.0) THEN
+         DO 1200 I1 = 1,NUMLOOP
+            IF (FOUND(I1)) THEN
+               DO 1180 J1 = 1,NUMELEM
+                  TMPFMT = '(    )'
+                  TMPFMT(2:5) = HLDFMT(J1)
+                  IF (TMPFMT(2:2).EQ.'I') THEN
+C                      .. ROUND VALUES OUTPUT AS INTEGER
+                     CALL IROUND4(HLDARRAY(J1,I1),IVALUE)
+                     WRITE(OUTVAL(J1),TMPFMT) IVALUE
+                  ELSE
+                     WRITE(OUTVAL(J1),TMPFMT) HLDARRAY(J1,I1)
+                  END IF
+1180           CONTINUE
+               IF (RECTYPE.EQ.'MLY'.OR.RECTYPE.EQ.'10D') THEN
+C                   .. WRITE MONTHLY AND 10 DAY DATA
+                  WRITE(75,FMT1) PREVID(1:8),PREVID(9:12),I1
+     +               ,(OUTVAL(J1),HLDFLAG(J1,I1),J1=1,NUMELEM)
+               ELSE IF (RECTYPE.EQ.'DLY') THEN
+C                   .. WRITE DAILY DATA               
+                  READ(PREVID,'(12X,I2.2)') JMONTH
+                  WRITE(75,FMT1) PREVID(1:8),PREVID(9:12),JMONTH
+     +               ,I1,(OUTVAL(J1),HLDFLAG(J1,I1),J1=1,NUMELEM)
+               ELSE
+C                   .. WRITE 15 MINUTE, HOURLY, AND SYNOPTIC DATA
+                  READ(PREVID,'(12X,2I2.2)') JMONTH,JDAY
+                  WRITE(75,FMT1) PREVID(1:8),PREVID(9:12)
+     +               ,JMONTH,JDAY,I1HRLBL(I1)
+     +               ,(OUTVAL(J1),HLDFLAG(J1,I1),J1=1,NUMELEM)
+               END IF
+            END IF
+1200     CONTINUE                                    
+      END IF
+C
+      STOP ' ' 
+      END
+ 

@@ -1,0 +1,28 @@
+-1  2  -1   1
+ ³  ³  ³    ³        DATA IS READ FROM LINE 1
+ ³  ³  ³    ³       
+ ³  ³  ³    ÀÄ Mouse flag --> 0=no mouse installed  1=mouse installed 
+ ³  ³  ³           
+ ³  ³  ÀÄ Maximum number of 16K pages of expanded (EMS) memory allocated 
+ ³  ³     to process a high resolution print -- This memory is 
+ ³  ³     allocated from the XMS memory manager.  The manufacturer's 
+ ³  ³     resident software (usually HIMEM.SYS) must be installed in the 
+ ³  ³     CONFIG.SYS file.  In DOS extended mode a maximum of 8MB is supported.
+ ³  ³             
+ ³  ÀÄ Maximum number of 16K byte pages of internal memory allocated
+ ³     to process a high resolution print -- This memory is allocated 
+ ³     from the operating system.  In real mode the maximum amount of 
+ ³     memory available is 640K bytes.  
+ ³
+ ÀÄ Maximum number of 16K pages of expanded (EMS) memory allocated to process 
+    a high resolution print -- This memory is allocated from the EMS memory 
+    manager.  The software supplied with the EMS card must be installed in 
+    the CONFIG.SYS file before running CLICOM.
+  
+Note:  Memory required to process a high resolution print is allocated in 
+       the following sequence:  expanded, internal, disk.  A minimum of 2
+       16K byte pages must be allocated, in any combination, from expanded
+       and/or internal memory.  A small amount of internal memory must be
+       reserved for allocation by other processes.
+       
+  

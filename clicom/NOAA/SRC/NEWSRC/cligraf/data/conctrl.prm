@@ -1,0 +1,68 @@
+ -------  Data is read from lines 5 and 20 of this file  -------
+
+---------------------- CONTOUR LINE CONTROLS --------------------------------
+
+2.0, 0.5
+ ³    ³
+ ³    ÀÄ PLOT INCREMENT FACTOR controls the number of in-between points for 
+ ³       each X/Y point on the contour line.  For example, given a plot
+ ³       increment factor of 0.5, a typical contour line would be made up of 
+ ³       50-60 X/Y points.  By increasing the plot increment factor to 0.75,
+ ³       the number of X/Y points would increase to 80-100 points per contour
+ ³       line.  Care should be given to this value since the amount of memory
+ ³       needed to store these points in the buffer is limited.  The optimum
+ ³       value should be in the range 0.5-1.0.
+ ³      
+ ÀÄ SMOOTHING FACTOR controls how smooth the contour lines will be.  The range
+    is 1-5, with 1 being the lowest smoothing factor and 5 being the highest
+    smoothing factor.  The optimum value should be in the range 2-3.
+
+ 1, 7 , 7
+ ³  ³  ³
+ ³  ³  ÀÄ Y-CLIP FACTOR defines the number of Y-grid points to search for the
+ ³  ³     next data value.
+ ³  ÀÄ X-CLIP FACTOR defines the number of X-grid points to search for the 
+ ³     next data value.
+ ³
+ ÀÄ CLIPPING FLAG controls clipping of contour interval lines
+    0 = Plot contour lines to the end of the grid field or data window
+    1 = Clip contour lines at a specified number of grid points away from 
+        the current data value 
+        
+ X/Y CLIP FACTOR
+ ---------------
+ The X and Y clipping factor controls the search distance for the next data
+ value from each data point.  If a data point is found in this search distance,
+ the value will be included in the interpolation.  Otherwise, all points within
+ the search distance will be excluded from the interpolation and all contour
+ lines within this region will be clipped.
+ 
+ If both the X-clip and Y-clip factors were set equal to 2, then all grid
+ locations marked in the figure below would be searched.  If any new data 
+ values are found, they would be included in the interpolation.  Otherwise,
+ all contour lines would be clipped against this area.  This feature is
+ useful when data is on land and contour lines extend into the water.  By
+ setting the clipping factor on and both the X and Y clipping search
+ direction to some value, all contours over the water regions will be clipped.
+ 
+      ________________________________________________________
+      |          |          |          |          |          |     
+      |          |          |    2     |          |          |     
+    Y |__________|__________|__________|__________|__________|
+      |          |          |          |          |          |     
+    c |          |          |    1     |          |          |     
+    l |__________|__________|__________|__________|__________|
+    i |          |          |          |          |          |     
+    p |    2     |    1     |DATA POINT|    1     |    2     |     
+    p |_________|__________|__________|__________|__________|
+    i |          |          |          |          |          |     
+    n |          |          |    1     |          |          |     
+    g |__________|__________|__________|__________|__________|
+      |          |          |          |          |          |     
+      |          |          |    2     |          |          |     
+      |__________|__________|__________|__________|__________|
+
+              <----- X clipping search direction ----->
+      
+      
+ 

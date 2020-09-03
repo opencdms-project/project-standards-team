@@ -1,0 +1,196 @@
+CODE REVISIONS AFTER THE RELEASE OF CLICOM 3.0 (July 1992) 
+(Actual date diskettes were mailed: 9-2-92)
+
+File name:     MAPCON.RVA
+Revision nbr:  1   11-13-92
+               2   08-02-93  
+
+******************************************************************************
+******************************************************************************
+
+File:           CNTR2.FOR
+Revision nbr:   1  
+Revision date:  11-13-92
+Release date:   11-25-92
+Problems:       1 -- For very sparse data sets, it is possible that the
+                     variable MMAX can be larger than the number of columns
+                     in the array TUX.  This possibility is checked when the
+                     array is filled but not when it was zeroed.  This problem
+                     occurs in routine KCUTGD which is used for clipping the
+                     contour lines.
+Solution:       Refer to file KWSUB.RVA                     
+
+******************************************************************************
+******************************************************************************
+
+File:           CONMAP.FOR, KWWEVR.FOR, PCTRL2.FOR
+Revision nbr:   2  
+Revision date:  08-02-93
+Release date:   
+Problems:       1 -- Array dimensions are calculated in RETLIM and passed to
+                     KWWEVR.  The dimensions are based on the ratio of the 
+                     lat and lon distances.  The minimum dimension accepted
+                     by KWWEVR is 11.  For lat/lon areas that are very narrow 
+                     in one direction, it is possible for the calculated
+                     dimension to be less than 11.  No check was make in RETLIM
+                     and no error message was returned from KWWEVR.  The only
+                     indication of a problem was the fact that no contours
+                     were drawn.
+                     An error message was added to CONMAP to report any error
+                     returned from KWWEVR.  Checks were added to RETLIM to
+                     prevent a dimension from being less than 11.
+                     
+                2 -- The arrays containing Station Id (CVAL) and the values to
+                     be contoured (RVAL) were passed to CONMAP starting at
+                     position one.  This is correct only if the low row index
+                     was set to start at row 1 of the array.  The arrays passed
+                     should start at the low row index (LORFRM).
+Solution:       The solutions for CONMAP.FOR and PCTRL2.FOR are shown below.
+                The solution for KWWEVR.FOR is in file KWSUB.RVA.
+_______________________________________________________________________________
+      SUBROUTINE CONMAP(IOPT,STNID,VAL,I1VAL,MXDATROW,NVAL,RTNCODE)
+C
+C       ** OBJECTIVE:  CONTOUR DATA AND OVERLAY CONTOURS ON A MAP
+C                      BACKGROUND
+.
+.
+C       ** LOCAL VARIABLES
+C
+      LOGICAL GRIDOK,NODAT,CPYBKGND,WRSPEC,PRTFLG,RDERR
+      INTEGER*2 BTVCFLG,GRDLBON,CONLBON,INDXMP,IERR
+      CHARACTER*12 BKGNDNAM
+      CHARACTER*35 MSGTXT                ---------------->> CHANGE 17 TO 35
+C       ** REVISION JML 7-30-93      
+      CHARACTER*2 INCHAR                 ---------------->> ADD LINE
+C       .. GRFPARM.INC REQUIRED FOR PARAMETER
+      CHARACTER *(LENTXTD) TTLTXT      
+.
+.
+         IF (CONINCR(NC-2).EQ.0.) THEN
+C
+C             .. USER SPECIFIED CONTOUR LEVELS
+            CTRVAL = 1.
+            NLEV   = 1
+            DO 30 I=1,NCONLEV
+               CONMN = CONLEV(I)
+               CONMX = CONMN
+               CALL KONTOUR(VAL(1,1),VAL(1,2),VAL(1,NC),I1VAL,NVAL,
+     +            IPASS,NLEV,CTRVAL,CONMN,CONMX,
+     +            CONLBON,NDECRT(1),BTVCFLG,CLBHTW,NCONPTS,RDERR,KONERR) ----|
+               IPASS=2                                                       |
+   30       CONTINUE                                       ADD KONERR <<-----|
+         ELSE IF (CONINCR(NC-2).LT.0.) THEN
+C
+C             .. USER SPECIFIED NUMBER OF CONTOUR LEVELS.  MIN/MAX CONTOUR
+C                LEVELS AND CONTOUR INCREMENT DETERMINED FROM DATA
+            CTRVAL = -99999.
+            NLEV = NINT(ABS(CONINCR(NC-2)))
+            CALL KONTOUR(VAL(1,1),VAL(1,2),VAL(1,NC),I1VAL,NVAL,
+     +           IPASS,NLEV,CTRVAL,CONMN,CONMX,
+     +           CONLBON,NDECRT(1),BTVCFLG,CLBHTW,NCONPTS,RDERR,KONERR) -----|
+         ELSE                                                                |
+C                                                        ADD KONERR <<-------|
+C             .. USER SPECIFIED CONTOUR INCREMENT.  MIN/MAX CONTOUR
+C                LEVELS DETERMINED FROM DATA
+            CTRVAL = CONINCR(NC-2)
+            CALL KONTOUR(VAL(1,1),VAL(1,2),VAL(1,NC),I1VAL,NVAL,
+     +           IPASS,NCONLEV,CTRVAL,CONMN,CONMX,
+     +           CONLBON,NDECRT(1),BTVCFLG,CLBHTW,NCONPTS,RDERR,KONERR) -----|
+         ENDIF                                                               | 
+         IF (RDERR) THEN                                  ADD KONERR <<------|
+            XWIN=.1
+            YWIN=.95
+            MSGN1=191
+            MSGN2=202
+            MSGTXT = '  O:\CONCTRL.PRM'
+            CALL GRAFNOTE(XWIN,YWIN,MSGN1,MSGN2,MSGTXT,16,INCHAR)
+         ENDIF
+C         
+C ** REVISION ** (JML 07-30-93)
+C    ADD KONERR TO CALLS TO KONTOUR; ADD ERROR MESSAGE    
+         IF (KONERR.GT.0) THEN                                         --------
+            XWIN=.1                                                        |
+            YWIN=.95                                                       |
+            MSGN1=508                                                 ADD LINES
+            MSGN2=202                                                      |
+            WRITE(MSGTXT,'(A,1X,I2)')'System error in KWWEVR.  ERROR=',    |
+     +                                KONERR                               |
+            CALL GRAFNOTE(XWIN,YWIN,MSGN1,MSGN2,MSGTXT,34,INCHAR)          |
+         ENDIF                                                         --------
+         NODAT = NODAT .AND. NCONPTS.LE.1
+C
+C          .. EXIT PLOT IF ESC OR F4 ENTERED     
+         CALL ESCQUIT(*900)
+  100 CONTINUE
+.
+.
+.
+      SUBROUTINE KONTOUR(YLAT,XLON,DATVAL,I1KNTDAT,NUMPTS,IPASS,NCONLEV,
+     +              CTRVAL,CONMN,CONMX,
+     +              CONLBON,NCONDEC,BTVCFLG,CLBHTW,NCONPTS,RDERR,KONERR)
+C                                                                     |    
+C       ** OBJECTIVE:  CONTOUR DATA AT THE GIVEN LAT/LONG POSITIONS   |
+C                                                                     |
+C ** REVISION ** (JML 07-30-93)                                       |
+C    ADD KONERR TO CALLING ARGUMENTS     <<---------------------------|
+.
+.
+.
+            CALL KWINTC(XMNLON,YMNLAT,XMXLON,YMXLAT,IXSIZ,IYSIZ,
+     +                  SAMPLE,SMOOTH,PLTINC,CLBHTW,BTVCFLG)
+C
+            IUNIT=69
+C ** REVISION ** (JML 07-30-93)
+C    ADD KONERR TO CALLING ARGUMENTS TO KWWEVR
+            KONERR = 0                                --------->> ADD LINE
+            CALL KWWEVR(T,W,ICUT,IXSIZ,IYSIZ,IUNIT,IFLG,IXCUT,IYCUT,
+     +                  KONERR)                       --------->> ADD KONERR
+C DEBUG      .. PLOT INTERPOLATED FIELD ON MAP         
+CCC         CALL KWFIELD(T,W,ICUT,IXSIZ,IYSIZ,XMNLON,YMNLAT,XMXLON,YMXLAT)
+.
+.
+      SUBROUTINE RETLIM(YLAT,XLON,DATVAL,I1KNTDAT,NUMPTS,MAXSIZ,
+     +                  IX,IY,NCONPTS,XMNDAT,YMNDAT,XMXDAT,YMXDAT)
+.
+.
+      IF (XDIF.GT.YDIF) THEN
+          SCL = YDIF / XDIF
+          IF (SCL.LE.0) SCL = 1
+          IY  = MAX0(11,NINT(MAXSIZ*SCL))  ----------->>ADD MAX0 AND NINT
+C          IY  = MAXSIZ*SCL
+      ELSE
+          SCL = XDIF / YDIF
+          IF (SCL.LE.0) SCL = 1
+          IX  = MAX0(11,NINT(MAXSIZ*SCL))  ----------->>ADD MAX0 AND NINT
+C          IX  = MAXSIZ*SCL
+      ENDIF
+C
+  120 CONTINUE
+      RETURN
+      END 
+_______________________________________________________________________________
+
+      SUBROUTINE PCTRL(IOPT,RTNCODE)
+.
+.
+C       ** NOTE:       THIS VERSION OF ROUTINE PCTRL IS CONTAINED IN FILE
+C                      PCTRL2. IT IS USED IN GRFMN2.EXE TO PLOT MAPS. 
+.
+.
+$INCLUDE: 'GRFPARM.INC'
+$INCLUDE: 'GRAFVAR.INC'
+$INCLUDE: 'DATAVAL.INC'
+C **REVISION (JML 8-02-93)    ADD COMMON FRMPOS
+$INCLUDE: 'FRMPOS.INC'                          ------------------>> ADD LINE
+C
+      IF (IGRAPH.EQ.2) THEN
+C
+C          .. PLOT CONTOUR AND MAP      
+         CALL INITPV(VPNDLF,VPNDRT,VPNDBT,VPNDTP,PALETTE,BKGNCLR)
+C **REVISION (JML 8-02-93)
+         IDX = LORFRM                           ------------------>> ADD LINE
+         CALL CONMAP(IOPT,CVAL(IDX),RVAL(IDX),I1VAL,MXDATROW,NPLTROW,
+     +               RTNCODE)   |         |
+                                |         |
+                                ---------------------------------->> ADD (IDX)
+                                

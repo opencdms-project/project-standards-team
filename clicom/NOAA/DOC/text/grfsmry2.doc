@@ -1,0 +1,252 @@
+                
+                    GRAPH MGR MENU  --  9. DATA                      Page 1 
+
+
+   ** TIMESERIES **
+   
+   GRAPH OPTIONS CONTROL AREA:
+    1. Title
+    2. Subtitle
+    3. Free Text                         
+    4. Graph Legend.......Value = OFF/HOR/VER
+    5. Plots/Page.........Value = 1                *** NO ENTRY ALLOWED ***  
+    6. Data Range.........Low column,  low row
+                          High column, high row
+    7. Band Location......Value = P/I
+    8. Plot Width
+    9. Left Axis Title
+   10. Right Axis Title
+   11. Bottom Axis Title
+   12. Left Axis Scale   <   Min....Value = AUTO/Real number
+   13. Right Axis Scale  <   Max....Value = Blank/Real number
+   14. Bottom Axis Scale <   Majr...Value = Real number(+/-)
+                         <   Minr...Value = 0/1
+   
+   GRAPH OPTIONS DATA AREA:
+    1. Graf-Axis..........Value = L/R                
+                    GRAPH MGR MENU  --  9. DATA                      Page 2 
+
+
+   ** CONTOUR/MAP **
+                   
+   DATA
+    1. Contour Interval Value
+    2. Graph Options                    
+                    
+   GRAPH OPTIONS CONTROL AREA:
+    1. Title
+    2. Subtitle
+    3. Free Text                         
+    4. Graph Legend.......Value = OFF/HOR/VER
+    5. Plots/Page.........Value = 1                 *** NO ENTRY ALLOWED ***
+    6. Data Range.........Low column,  low row 
+                          High column, high row
+    7. Map Projection.....Value = MLR/SCR
+    8. Plot Width
+    9. Left Axis Title
+   10. Bottom Axis Title
+   11. Lat Scale         <  Min....Value = Real number
+   12. Long Scale        <  Max....Value = Real number
+                         <  Majr...Value = Integer number (whole degrees)
+                         <  Minr...Value = Integer number (tics/division)
+
+                
+                    GRAPH MGR MENU  --  9. DATA                      Page 3 
+
+
+   ** SKEWT **
+                                                
+   GRAPH OPTIONS CONTROL AREA:
+    1. Title
+    2. Subtitle
+    3. Free Text                         
+    4. Graph Legend.......Value = OFF/HOR/VER
+    5. Plots/Page.........Value = 1               *** NO ENTRY ALLOWED ***  
+    6. Data Range.........Low column, low row,    *** NO ENTRY ALLOWED ***  
+                          High column, high row   *** NO ENTRY ALLOWED ***  
+    7. Band Location......Value = P               *** NO ENTRY ALLOWED ***  
+    8. Plot Width.........Value = 6               *** NO ENTRY ALLOWED ***  
+    9. Max Pressure for ZOOM
+
+
+   ** WIND ROSE **
+
+   GRAPH OPTIONS CONTROL AREA:
+    1. Title
+    2. Subtitle
+    3. Free Text                         
+    4. Graph Legend..........Value = OFF/HOR/VER
+    5. Plots/Page............Value = 1               *** NO ENTRY ALLOWED ***  
+    6. Data Range............Low column,  low row,   *** NO ENTRY ALLOWED ***
+                             high column, high row   *** NO ENTRY ALLOWED *** 
+    7. Band Location.........Value = P               *** NO ENTRY ALLOWED ***
+    8. Number of Wind Speed
+          Directions.........Value = 8/16            *** NO ENTRY ALLOWED ***
+    9. Number of Wind Speed
+          Groups.............Value = 1-6
+   10. Number of Wind Speed
+          Intervals/Group....Value = 1-50
+
+   GRAPH OPTIONS DATA AREA:
+   Special Case:  Row 3
+   
+            A          B          C            D
+             
+    3     Calm+    Percent of   Mean      Total Number
+                   Calm Winds   Speed     of Reports
+                
+                    GRAPH MGR MENU  --  9. DATA                      Page 4 
+
+
+   ** FUNCTION KEYS **
+   
+   GRAPH OPTIONS CONTROL AREA:
+      F1.......Help
+      F2.......Enter
+      F4/ESC...Abort
+      PgDn.....Data Area
+
+   GRAPH OPTIONS DATA AREA:
+      F1.......Help
+      F2.......Enter
+      F3.......Nxt Band
+      F4/ESC...Abort
+      F5.......Clear Form
+      F6.......Clear Field
+      F7.......Prev Band
+      F8.......First Band
+      SH-F3....Add Frame
+      SH-F8....Rewind Band
+      PgUp.....Control Area
+   
+
+                USER DEFINED PLOT DESCRIPTORS                    Page 1 
+                
+   Listed below are plot descriptors that can be defined by the user.  They
+   are arranged by plot type.  Within each plot type they are arranged by
+   the plot data group that they describe (band, plot, element).
+
+   1. TIMESERIES
+
+      ** BAND **                 
+         AXIS DESCRIPTORS
+         AXIS LINE/LABEL DESCRIPTORS
+         BACKGROUND COLOR
+         BOTTOM SCALE
+         BOTTOM SCALE DIVISIONS
+         BOTTOM TEXT
+         DATA RANGE             
+         FREE TEXT
+         LEGEND ORIENTATION    
+         NUMBER CHARACTERS BOTTOM AXIS LABEL
+         PALETTE
+         PLOT WIDTH
+         PLOT AREA
+         SUBTITLE
+         TIC/GRID LINE COLOR
+         TIC/GRID LINE THICKNESS
+         TITLE
+         TITLE/TEXT DESCRIPTORS
+         VIEWPORT
+   
+      ** PLOT **
+         LEFT SCALE
+         LEFT SCALE DIVISIONS
+         LEFT TEXT            
+         NUMBER DECIMALS LEFT AXIS LABELS
+         NUMBER DECIMALS RIGHT AXIS LABELS
+         RIGHT SCALE
+         RIGHT SCALE DIVISIONS
+         RIGHT TEXT
+         TIC/GRID LINE PATTERN
+         TIC/GRID TYPE        
+
+      ** ELEMENT **
+         LINE DESCRIPTORS   
+      
+
+          
+                USER DEFINED PLOT DESCRIPTORS                    Page 2
+
+   2. MAP
+
+      ** BAND **
+         BACKGROUND COLOR
+         BOTTOM TEXT
+         CONTOUR LABEL DECIMAL PLACES
+         CONTOUR LABEL FONT,SIZE,ASPECT
+         FREE TEXT
+         LAT/LON RANGE             
+         LAT/LON SCALE
+         LAT/LON SCALE DIVISIONS
+         LEGEND ORIENTATION    
+         MAP DETAIL
+         MAP LINE DESCRIPTORS
+         MAP PROJECTION
+         NUMBER OF USER INTERVALS USED
+         PALETTE
+         PLOT AREA
+         PLOT WIDTH
+         STATION MARKER FONT,SIZE,ASPECT
+         SUBTITLE
+         TIC/GRID LINE COLOR
+         TIC/GRID LINE THICKNESS
+         TITLE
+         TITLE/TEXT DESCRIPTORS
+         VIEWPORT
+         USER CONTOUR INTERVAL LIST
+
+      ** PLOT **
+         CONTOUR INTERVAL TYPE 
+         LEFT TEXT            
+         TIC/GRID LINE PATTERN
+         TIC/GRID TYPE        
+         STATION MARKER COLOR 
+         STATION MARKER TYPE  
+         
+      ** ELEMENT/DATE **
+         CONTOUR LINE DESCRIPTORS   
+      
+
+                USER DEFINED PLOT DESCRIPTORS                    Page 3 
+
+   3. SKEWT
+
+      ** BAND=PLOT **                       
+         BACKGROUND COLOR
+         FREE TEXT
+         LEGEND ORIENTATION    
+         PALETTE
+         PLOT AREA
+         SUBTITLE
+         TITLE
+         TITLE/TEXT DESCRIPTORS
+         VIEWPORT
+      
+      ** ELEMENT(TEMP,DEWPT) **
+         LINE COLOR
+         LINE PATTERN
+         LINE THICKNESS
+   
+   4. WIND ROSE
+   
+      ** BAND=PLOT **
+         BACKGROUND COLOR
+         FREE TEXT
+         LEGEND ORIENTATION    
+         NUMBER OF RINGS
+         NUMBER OF WIND SPEED DIRECTIONS
+         NUMBER OF WIND SPEED GROUPS
+         NUMBER OF WIND SPEED INTERVALS/GROUP
+         PALETTE
+         PERCENT OUTER RING
+         PLOT AREA
+         SPOKE WIDTH
+         SUBTITLE
+         TITLE
+         TITLE/TEXT DESCRIPTORS
+         VIEWPORT
+         
+      ** WIND SPEED GROUP **
+         SPOKE COLOR
+

@@ -1,0 +1,76 @@
+$STORAGE:2
+
+      SUBROUTINE GETDSC(RDISK,DDISK,LEND)
+C
+C   ROUTINE TO READ THE DOS ENVIRONMENT AREA AND SEARCH FOR TWO
+C   VARIABLES WHICH INDICATE IF A RAM DISK IS AVAILABLE AND WHAT DISK
+C   AND DIRECTORY HOLD THE DATAEASE DATA.  THE RAM DISK IS INDICATED
+C   BY RDISK=d: AND THE DATAEASE DIRECTORY BY DDISK=e:\dir WHERE d: IS
+C   THE APPROPRIATE DRIVE LETTER AND e:\dir THE APPROPRIATE DRIVE AND
+C   DIRECTORY. NOTE: e:\dir MUST CONTAIN A TOTAL OF NO MORE THAN LEND 
+C   CHARACTERS - ON RETURN LEND = THE ACTUAL NUMBER OF CHARACTERS    
+      
+      CHARACTER*100 STRBUF(5),ENVSTR
+      CHARACTER*2 RDISK
+      CHARACTER*16 DDISK
+      CHARACTER*1 NULL
+      INTEGER*2 LEND
+      EQUIVALENCE (STRBUF,ENVSTR)      
+
+      NULL = CHAR(0)
+C
+C   SET DEFAULT VALUES -- JLEN IS DEFAULT LENGTH FOR RDISK AND DDISK
+C
+      RDISK = 'P:'
+      DDISK = 'Q:'
+      JLEN  = 2    
+C      
+C   GET THE ENVIRONMENT AREA - RETURNED AS A SINGLE STRING
+C      
+      CALL GETENV(ENVSTR)
+      I = 0
+C
+C   SEARCH THE ENVIRONMENT STRING FOR THE VARIABLES INDICATED
+C
+ 40   CONTINUE     
+      I = I + 1
+C
+C     CHECK FOR END OF ENVIRONMENT STRING
+C
+         IF (ENVSTR(I:I).EQ.NULL) THEN
+            LEND = JLEN
+            RETURN
+         END IF
+C
+C     CHECK TO SEE IF THIS IS ONE OF THE STRINGS WANTED
+C
+         IF (ENVSTR(I:I+4).EQ.'RDISK') THEN
+            RDISK=ENVSTR(I+6:I+7)
+         ELSE IF (ENVSTR(I:I+4).EQ.'DDISK') THEN
+            DO 60 J = I+6,999
+               IF (ENVSTR(J:J).EQ.NULL) THEN
+                  K = J-1
+                  JLEN = K - (I+6) + 1
+                  IF (JLEN.GT.LEND) THEN
+                     K = I+6 + LEND - 1
+                     JLEN = K - (I+6) + 1
+                  END IF   
+                  DDISK = ENVSTR(I+6:K) 
+                  I = K
+                  GO TO 65
+               END IF
+  60        CONTINUE      
+  65        CONTINUE            
+         END IF
+C
+C   FIND THE END OF THIS STRING (HENCE THE BEGINNING OF THE NEXT)            
+C
+         DO 80 J = I,999
+            IF (ENVSTR(J:J).EQ.NULL) THEN
+               I = J
+               GO TO 40
+            END IF
+  80     CONTINUE                  
+      RETURN         
+      END
+     

@@ -1,0 +1,104 @@
+
+***** Keep page 17-1 from old manual
+
+
+The skeleton programs for IMPORT1 and IMPORT2 assume that the data in the
+digital input file is recorded by observation.  This means that each record
+contains multiple elements recorded at a single time.  Although multiple
+stations may be included in the file, the data format is converted for one
+station at a time.  The program assumes that the file is sorted by station
+and date.  If your file does not meet these specifications, the import
+programs will require major revisions.
+
+Before you can run the import programs, you must create a control file.  The
+programs need to know which elements are in the input record and in what order
+they appear.  They also need to know what representation indicates missing 
+data for each element.  Use your text editor to create a file 'IMPCTRL.DLY'
+in your CLICOM/DATA directory.  This file must contain 2 records:
+Record 1 contains a comma delimited list of the CLICOM element codes in order
+of their appearance in the input record.
+Record 2 contains a comma delimited list of the values in the input record
+that denote missing for each element.
+
+
+IMPORT1  Importing custom digital data directly into the DataEase files.
+
+1.  Modify the IMPORT1 program to read your data format.  The following 
+    sections of the code usually require revision.  The actual code in the
+    program is prefaced with detailed comments.
+    a. Add the file name to the statement opening the input data file.
+    b. Revise the statement opening the output file so that it conforms to
+       the syntax of your FORTRAN version by choosing 'NEW' or 'UNKNOWN'
+       for the status of the file.
+    c. Revise the READ statement for the input file to match your variable
+       type and format.
+    d. Add necessary code to convert input data to a form compatible with
+       the output format.      
+    Note that the DataEase file structure in CLICOM is fixed and NO 
+    modifications should be made to the WRITE statements in IMPORT1.   
+
+2.  Compile and test the modified program.
+
+3.  Run IMPORT1 from within CLICOM by choosing choice #7 (Perform a single
+    DOS command) from the CLICOM Introductory menu.
+
+4.  Import the file created by IMPORT1 (Q:IMPORT.DAT) into the appropriate
+    DataEase form by selecting the 'Import ASCII file into DataEase' choice
+    from the 'Export/import climate data' menu (2.2).  The file Q:IMPORT.DAT
+    is a VARIABLE LENGTH ASCII file which uses a comma as a FIELD SEPARATOR
+    and a carriage return as a RECORD SEPARATOR.  The decimal points are
+    already inserted into the fields so DataEase does NOT have to insert any
+    decimal points.  The file is organized by FIELD ORDER.  If you are 
+    importing into an empty DataEase file, then you should use the choice
+    'Do not Match' to process matching records.  If the DataEase file already
+    contains data, then you should use the choice 'Add or Update' to process
+    matching records.  This choice will allow all new records to be added and
+    will prevent duplicate records by overwriting all matching old records.
+    
+5.  To sort the new DataEase file, exit DataEase and choose choice #7 from the
+    CLICOM Introductory menu (Perform a single DOS command).  Type DSORT xxx
+    where 'xxx' is the 3 letter abbreviation for the data type loaded (MLY,
+    10D, DLY, SYN, HLY, or U-A).  The DSORT.bat file will automatically
+    un-index and re-index each of the indexed fields in the appropriate form.
+    
+6.  Copy the data to off-line storage with the 'Transfer climate data' menu(8).
+
+7.  The data is now on-line in the DataEase file and ready for use.
+
+
+
+IMPORT2  Importing custom digital data into DataEase via the key 
+         entry/validation file.
+
+1.  Define a Key-entry/Validation form to receive the imported data.  Use
+    choice #1 from the ADMIN menu(5).
+    
+2.  Modify the IMPORT2 program to read your data format.  The following 
+    sections of the code usually require revision.  The actual code in the
+    program is prefaced with detailed comments.
+    a. Add the file name to the statement opening the input data file.
+    b. Revise the READ statement for the input file to match your variable
+       type and format.
+    c. Add necessary code to convert input data to a form compatible with
+       the output format.      
+    Note that, for output, the program will determine the order of the elements
+    in the user's previously defined key entry form and rearrange the input
+    elements appropriately.  The data will be written to the key entry form.
+    NO modifications should be made to the output code in IMPORT2.   
+
+2.  Compile and test the modified program.
+
+3.  Run IMPORT2 by selecting choice #3 from the 'Climate data key-entry and
+    quality control' menu (3).
+    
+4.  Quality control is performed automatically when you choose to Validate the
+    data and call up each of the data entry records.  Validate all of the 'red'
+    errors.
+
+5.  Load the validated data by following the steps normally used to load
+    validated data into DataEase.  
+    
+6.  Copy the data to off-line storage with the 'Transfer climate data' menu(8).
+
+7.  The data is now on-line in the DataEase file and ready for use.
+    

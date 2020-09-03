@@ -1,0 +1,343 @@
+$STORAGE:2
+      SUBROUTINE GRFPRNT
+C------------------------------------------------------------------------------
+C     PRINT THE SCREEN ON THE ACTIVE PRINTER IN QUICK SCREEN OR 
+C     HI-RESOLUTION MODE.
+C------------------------------------------------------------------------------
+$INCLUDE:'HALOENV.INC'
+$INCLUDE:'GRFPARM.INC'
+$INCLUDE:'GRAFVAR.INC'
+$INCLUDE:'SAVBUF.INC'
+      INTEGER *4    IADDR
+      INTEGER       MATR(33), SEGM, SEGMENT, FUNC, ERR
+      CHARACTER*12  MSGTXT  
+      CHARACTER*2   INCHAR, HALOERR
+      CHARACTER*1   RTNCODE
+      LOGICAL       DITHER, COLRPRN
+C
+C---- PRINT A GRAPHICS PRODUCT IN HIGH RESOLUTION MODE USING HALO'S
+C---- VIRTUAL RASTER INTERFACE (VRI).
+C---  ACTVPTR IS THE PRINTER DESIGNATION, 0 = PRIMARY & 1 = ALTERNATE 
+C
+      CALL INQDRA(MX,MY)
+      CALL INQASP(DEVASP)
+      XD=MX+1
+      YD=MY+1
+      DITHER  = .TRUE.
+      COLRPRN = .FALSE.
+      IF (ACTVPTR .EQ. 0 ) THEN
+         PTRVAL(2) = (FLOAT(PTRVAL(1))*PTRASP*YD) / (XD*DEVASP)
+         MAXX      = PTRVAL(1) - 1
+         MAXY      = PTRVAL(2) - 1
+         IF (PTRVAL(5) .EQ. 1) THEN
+            DITHER = .FALSE.
+         ENDIF
+         IF (PTRVAL(20) .EQ. 1) THEN
+            COLRPRN = .TRUE.
+         ENDIF
+      ELSE
+         PRVAL2(2) = (FLOAT(PRVAL2(1))*PRASP2*YD) / (XD*DEVASP)
+         MAXX      = PRVAL2(1) - 1
+         MAXY      = PRVAL2(2) - 1
+         IF (PRVAL2(5) .EQ. 1) THEN
+            DITHER = .FALSE.
+         ENDIF
+         IF (PRVAL2(20) .EQ. 1) THEN
+            COLRPRN = .TRUE.
+         ENDIF
+      ENDIF
+C **DEBUG      
+C      IPRTFLG = 0
+C  100 CONTINUE
+C **END DEBUG
+      CALL CLOSEG
+      IF (COLRPRN) THEN
+         MAXC = 15
+      ELSE         
+         IF (DITHER) THEN
+            MAXC = 3
+         ELSE
+            MAXC = 1
+         ENDIF
+      ENDIF
+      CALL SETDEV(VRI)
+      CALL SETDRA(MAXX,MAXY)
+      CALL SETCRA(MAXC)
+C **DEBUG
+C      IADDR =  LOCFAR(BUFFER)
+C      SEGM = ISHFT(IADDR,-16)
+C      MATR(2) = (MAXBYT - (4 * 1024)) / 16
+C      MATR(8) = 0
+C      MATR(9) = SEGM
+C      SEGMENT = (1024*4)/16 + SEGM
+C      CALL SETSEG(SEGMENT)
+      MATR(1)=2
+      MATR(2)=1
+      CALL SETMAT(MATR)
+C         
+C---- LOAD THE VIRTUAL RASTER INTERFACE AND SET PRINTER ATTRIBUTES
+C
+      CALL INITGR(0)
+      CALL INQERR(FUNC,ERR)
+C **DEBUG      
+      IF (ERR .NE. 0) THEN
+         WRITE(UNIT=MSGTXT,FMT='(I2,1X,A9)') ERR,'INITGR'
+         NCH = LNG(MSGTXT)
+         CALL WRTMSG(4,193,4,1,1,MSGTXT,NCH)
+         CALL CLOSEG
+         CALL BGNHALO(1,PALETTE,PALDEF)
+         RETURN
+      ENDIF
+      CALL SETIEE(1)
+      IF (ACTVPTR .EQ. 0) THEN
+         CALL SETASP(PTRASP)
+C **DEBUG      
+         CALL SETACTPR(PRINTR,PTRVAL)
+C         CALL SETPRN(PRINTR)
+C         CALL SETPAT(PTRVAL)
+      ELSE
+         CALL SETASP(PRASP2)
+C **DEBUG      
+         CALL SETACTPR(PRNTR2,PRVAL2)
+C         CALL SETPRN(PRNTR2)
+C         CALL SETPAT(PRVAL2)
+      ENDIF
+C **DEBUG      
+C      IF (IPRTFLG.EQ.0) THEN
+C **END DEBUG
+C---  MESSAGE TO USER TO WAIT DURING REDRAW 
+      CALL WRTMSG(18,380,3,1,0,' ',0)
+C---  HIGH RESOLUTION PRINT -- OPTION=4
+      CALL DRAWGRF(4,RTNCODE)
+      NTRY = 0
+      CALL INQVIE(X1,Y1,X2,Y2)
+C       .. IN ORDER TO OPEN THE VIEWPORT TO THE ENTIRE SCREEN, A MAX VALUE
+C          EQUAL TO .999 MUST BE USED.  A VALUE OF 1.0 IS A SPECIAL SIGNAL FOR
+C          HALO TO 'TURN OFF' THE VIEWPORT WHICH DOES NOT RESET ASPECT RATIOS
+C **DEBUG
+C      WRITE(*,*)'BEF WRITE IMAGE TO FILE'
+C      CALL GWRITE('^O:\VRISAV.DAT^')
+C      CALL INQERR(FUNC,ERR)
+C      WRITE(*,*)'AFT WRITE IMAGE TO FILE',FUNC,ERR
+C      IPRTFLG = 1
+C      GO TO 100
+C      ELSE
+C      WRITE(*,*)'BEF READ IMAGE FROM FILE'
+C      CALL GREAD('^O:\VRISAV.DAT^')
+C      WRITE(*,*)'AFT READ IMAGE FROM FILE'
+C      ENDIF
+C **END DEBUG
+      CALL SETVIE(0.0,0.0,0.999,0.999,-1,-1)
+C **DEBUG      
+C      STOP 'BEF GPRINT'
+C **END DEBUG      
+  200 CALL GPRINT
+      NTRY = NTRY + 1
+      CALL INQERR(FUNC,ERR)
+      IF (ERR .NE. 0) THEN
+         IF (ERR.LT.20 .OR. ERR.GT.29 .OR. NTRY .GT.2) THEN
+            IF (NTRY .GT. 2) THEN
+               MSGERR = 521
+            ELSE
+               MSGERR = 520
+            ENDIF
+            CALL WRTMSG(6,MSGERR,4,1,1,' ',0)
+            CALL CLRMSG(6)
+         ELSE
+            IF     (ERR .EQ. 20) THEN
+                   MSGERR = 522
+            ELSEIF (ERR .EQ. 21) THEN
+                   MSGERR = 519
+            ELSEIF (ERR .EQ. 22) THEN
+                   MSGERR = 523
+            ELSEIF (ERR .EQ. 23) THEN
+                   MSGERR = 524
+            ELSEIF (ERR .GT. 23) THEN
+                   MSGERR = 194
+            ENDIF
+            IF (MSGERR .EQ. 194) THEN
+               WRITE(UNIT=HALOERR,FMT='(I2)') ERR
+               CALL WRTMSG(6,MSGERR,4,0,0,HALOERR,2)
+            ELSE
+               CALL WRTMSG(6,MSGERR,4,0,0,' ',0)
+            ENDIF
+            CALL WRTMSG(5,507,4,1,0,' ',0)
+            CALL GETCHAR(0,INCHAR)
+            CALL CLRMSG(6)
+            CALL CLRMSG(5)
+            IF (ERR.NE.23.AND.INCHAR.NE.'ES'.AND.INCHAR.NE.'4F') THEN
+               GO TO 200
+            ENDIF
+         ENDIF
+      ENDIF
+      CALL SETVIE(X1,Y1,X2,Y2,-1,-1)
+      CALL BGNHALO(1,PALETTE,PALDEF)
+C      CALL DRAWGRF(3,RTNCODE)
+      RETURN
+C
+C---- QUICK SCREEN PRINT. 
+C
+      ENTRY SNAPST 
+      CALL INQDRA(MX,MY)
+      CALL INQASP(DEVASP)
+      XD=MX+1
+      YD=MY+1
+      NTRY = 0
+      IF (ACTVPTR .EQ. 0) THEN
+         PTRVAL(2) = (FLOAT(PTRVAL(1))*PTRASP*YD) / (XD*DEVASP)
+C **DEBUG         
+         CALL SETACTPR(PRINTR,PTRVAL)
+C         CALL SETPRN(PRINTR)
+C         CALL SETPAT(PTRVAL)
+      ELSE
+         PRVAL2(2) = (FLOAT(PRVAL2(1))*PRASP2*YD) / (XD*DEVASP)
+C **DEBUG
+         CALL SETACTPR(PRNTR2,PRVAL2)
+C         CALL SETPRN(PRNTR2)
+C         CALL SETPAT(PRVAL2)
+      ENDIF
+      CALL INQVIE(X1,Y1,X2,Y2)
+C       .. IN ORDER TO OPEN THE VIEWPORT TO THE ENTIRE SCREEN, A MAX VALUE
+C          EQUAL TO .999 MUST BE USED.  A VALUE OF 1.0 IS A SPECIAL SIGNAL FOR
+C          HALO TO 'TURN OFF' THE VIEWPORT WHICH DOES NOT RESET ASPECT RATIOS
+      CALL SETVIE(0.0,0.0,0.999,0.999,-1,-1)
+  300 CALL GPRINT
+      NTRY = NTRY + 1
+      CALL INQERR(FUNC,ERR)
+      IF (ERR .NE. 0) THEN
+         XLL = 0.5
+         YLL = 0.2
+         IF (ERR.LT.20 .OR. ERR.GT.29 .OR. NTRY .GT.2) THEN
+            IF (NTRY .GT. 2) THEN
+               MSGERR = 521
+            ELSE
+               MSGERR = 520
+            ENDIF
+            CALL GRAFNOTE(XLL,YLL,MSGERR,507,' ',0,INCHAR)
+         ELSE
+            IF     (ERR .EQ. 20) THEN
+                   MSGERR =  522
+            ELSEIF (ERR .EQ. 21) THEN
+                   MSGERR =  519
+            ELSEIF (ERR .EQ. 22) THEN
+                   MSGERR = 523
+            ELSEIF (ERR .EQ. 23) THEN
+                   MSGERR = 524
+            ELSEIF (ERR.GT.23 .OR. ERR.LT.20) THEN
+                   MSGERR = 194
+            ENDIF
+            IF (MSGERR .EQ. 194) THEN
+               WRITE(UNIT=HALOERR,FMT='(I2)') ERR
+               CALL GRAFNOTE(XLL,YLL,MSGERR,507,HALOERR,2,INCHAR)
+            ELSE
+               CALL GRAFNOTE(XLL,YLL,MSGERR,507,' ',0,INCHAR)
+            ENDIF
+            IF (ERR.NE.23.AND.INCHAR.NE.'ES'.AND.INCHAR.NE.'4F') THEN
+               GO TO 300
+            ENDIF
+         ENDIF
+      ENDIF
+      CALL SETVIE(X1,Y1,X2,Y2,-1,-1)
+      RETURN
+      END
+
+      SUBROUTINE SETACTPR(PRDRVR,PRATRB)
+C
+      CHARACTER*(*) PRDRVR
+      INTEGER*2     PRATRB(*)      
+C
+$INCLUDE:'SAVBUF.INC'
+      CHARACTER*12 MSGTXT
+      CHARACTER*2  INCHAR
+      INTEGER*2    PATTR(0:63)
+C
+C **DEBUG
+      MSGTXT = ' '
+      DO 20 I=1,17
+         I2BUF(I) = PRATRB(I)
+   20 CONTINUE   
+      DO 25 I=1,17
+         I2BUF(I) = -1
+   25 CONTINUE   
+      IF (I2BUF(5).EQ.0) THEN
+C       .. PERFORM DITHERING  MAGIC SQUARE (DEFAULT)
+         I2BUF(20) = 1
+      ELSE      
+C       .. DO NOT PERFORM DITHERING
+         I2BUF(20) = 0
+      ENDIF
+C      
+C **DEBUG  DITHERING  0=NO, USE THRESHOLD   1=MAGIC SQUARE DITHERING(DEFAULT)
+      I2BUF(20) = 1
+C **END DEBUG      
+C       .. BLACK WHITE REVERSAL  0=YES  1=NO      
+      I2BUF(4)  = 0
+C       .. THRESHOLD VALUE=1-255 DEFAULT=1  WORKS ONLY IF NO DITHERING      
+      I2BUF(5)  = 1
+C       .. FORMFEED  0=YES  1=NO
+      I2BUF(6)  = 0      
+C       .. PAGE SIZE  1=8.5x11  2=LEGAL  32=A4      
+      I2BUF(23) = 1
+C   
+      CALL SETPRN(PRDRVR)
+      CALL INQERR(304,IERR)
+      IF (IERR.NE.0) THEN
+         MSGTXT(4:) = 'SETPRN'
+         GO TO 900
+      ENDIF   
+C      
+C **DEBUG
+      PATTR(0)  = 1200
+      PATTR(1)  = 1200
+      PATTR(2)  = 0
+      PATTR(3)  = 1
+      PATTR(4)  = 1
+      PATTR(5)  = 0
+      PATTR(6)  = 0
+      PATTR(7)  = 2
+      PATTR(8)  = 1
+      PATTR(9)  = 0
+      PATTR(10) = 0
+      PATTR(11) = 0
+      PATTR(12) = -1
+      PATTR(13) = -1
+      PATTR(14) = -1
+      PATTR(15) = -1
+      PATTR(16) = 0
+      PATTR(17) = -1
+      PATTR(18) = -1
+      PATTR(19) = 0
+      PATTR(20) = -1
+      PATTR(21) = -1
+      PATTR(22) = 1
+      DO 99 I=23,63
+         PATTR(I)=-1
+   99 CONTINUE      
+      CALL SETPAT(PATTR)
+C      CALL SETPAT(I2BUF)
+C **END DEBUG
+      CALL INQERR(305,IERR)
+      IF (IERR.NE.0) THEN
+         MSGTXT(4:) = 'SETPRN'
+         GO TO 900
+      ENDIF   
+C **DEBUG
+        IB= 64
+        I2BUF(IB+1) = 255
+        I2BUF(IB+2) = 255    
+        I2BUF(IB+3) = 255    
+        DO 999 I=4,64
+           I2BUF(IB+I) = 0
+  999   CONTINUE      
+        CALL REPPRN(I2BUF(IB+1))
+      RETURN
+C       ** ERROR PROCESSING
+  900 CONTINUE
+         XLL = 0.5
+         YLL = 0.2
+         WRITE(MSGTXT(1:2),'(I2)') IERR
+         NCH = LNG(MSGTXT)
+         CALL GRAFNOTE(XLL,YLL,196,202,MSGTXT,NCH,INCHAR)
+      RETURN
+      END           
+      

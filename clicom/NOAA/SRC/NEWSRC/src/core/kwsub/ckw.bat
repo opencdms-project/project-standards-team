@@ -1,0 +1,6 @@
+echo off
+FL /FPi /Od /c %1.FOR 
+IF ERRORLEVEL 1 GOTO EXIT
+LIB C:\CLICOM\LIB\KWLIB -+%1;
+:EXIT
+

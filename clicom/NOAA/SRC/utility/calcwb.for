@@ -1,0 +1,50 @@
+$STORAGE:2
+C
+      SUBROUTINE CALCWB(DB,DP,SP,WB)
+C
+C       ** CALCULATE WET BULB TEMP 
+C
+C       ** INPUT:
+C             DB....DRY BULB TEMPERATURE (DEG C)
+C             DP....DEW POINT TEMPERATURE (DEG C)
+C             SP....STATION PRESSURE (MB)
+C       ** OUTPUT:
+C             WB....WET BULB TEMPERATURE  (DEG C)
+C
+C       ** NOTE:  THIS SUBROUTINE EXPECTS INPUT TEMPS IN DEG C. HOWEVER 
+C                 IT WORKS WITH FAHRENHEIT TEMPS SO DB AND DP MUST BE 
+C                 CONVERTED TO DEG F ON THE WAY IN AND WB MUST BE CONVERTED 
+C                 TO DEG C ON THE WAY OUT.
+C
+C
+C  CONVERT STATION PRESSURE FROM MILLIBARS TO INCHES
+C
+      D = SP / 33.8639
+C
+C  CONVERT INPUT TEMPS TO DEG F.
+C
+      TT = DB
+      CALL CTOF(TT)
+      TD = DP
+      CALL CTOF(TD)
+C
+      A = (TT - TD) * .1
+      B = A - 1
+      C = A**2
+C
+C  CALCULATE WET BULB AT TEMP >= 0.0 DEG F
+      IF (TT.GE.0.0)THEN
+         WB=TT-(.034*A-.00072*A*B)*(TT+TD-2.0*D+108.0)
+      END IF
+C  CALCULATE WET BULB FOR TEMPS < 0.0 DEG F
+      IF (TT.LT.0.0)THEN
+         WB=TT-(.034*A-.006*C)*(.6*(TT+TD)-2.0*D+108.0)
+      END IF
+C
+      CALL FTOC(WB)
+C      WRITE(*,*)' TT = ', TT, ' TD = ', TD, '  WB = ', WB
+C
+      RETURN
+      END
+C
+

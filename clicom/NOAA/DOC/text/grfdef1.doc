@@ -1,0 +1,28 @@
+FILE:  GRAPHICS.GDF 
+--------------------------------------------------------------------------
+
+C
+C       **  WRITE THE GRAPH DEFINITION (WRTGRAF.FOR)
+C
+  180 CONTINUE
+         GDFNAME = GRAFNAME
+         IOBSTYP = ITYPE
+         WRITE(11,500) IGRAPH,IOBSTYP,NBRELEM,NROWDIM,NUMCOL,NUMPLT
+     +                ,ITYPSET,NFRSET,OBSTYPE,GDFNAME
+
+--------------------------------------------------------------------------
+IGRAPH......Graph type index -- 1=Timeseries  2=Map  3=Skewt  4=Windrose
+IOBSTYP.....Observation type index -- 1-7
+NBRELEM.....Number of elements stored in the API file
+NROWDIM.....Maximum number of data rows allowed in the API file -- depends
+            on the number of columns (NUMCOL), the maximum array size (2500),
+            and the maximum number of rows (600) which are set in the program 
+NUMCOL......Total number of columns in the API file -- relationship to NBRELEM
+            depends on the graph type
+NUMPLT......Number of plots per band;  >=1 for timeseries;  >=1 for map    
+                                         1 for skewt          1 for windrose
+ITYPSET.....Band location   0=position  1=interval
+NFRSET......Number of records in a band
+OBSTYPE.....Three character observation type -- DLY, MLY, ETC.
+GDFNAME.....Name of the saved version of the .GDF and .API files
+    

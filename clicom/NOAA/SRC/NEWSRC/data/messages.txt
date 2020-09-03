@@ -1,0 +1,627 @@
+0001-                                                                              
+0002-Value too low - below global minimum                                          
+0003-Value too high - above global maximum                                         
+0004-Form total is below global limits.  Element, total =                          
+0005-Form total is above global limits.  Element, total =                          
+0006-Value inconsistent with related element on this line                          
+0007-Value inconsistent with related element limits                                
+0008-Value inconsistent with related element on previous line                      
+0009-Rate of change is too large - exceeds global change rate                      
+0010-Exceeds all time LOW record for the station                                   
+0011-Exceeds all time HIGH record for the station                                  
+0012-Exceeds LOW statistical limit for the station                                 
+0013-Exceeds HIGH statistical limit for the station                                
+0014-Rate of change is too large - exceeds station change rate                     
+0015-Blank not permitted here - a value is required                                
+0016-Estimated value expected                                                      
+0017-'T' flag requires 0 value entry                                               
+0018-Flag entry requires value entry                                               
+0019-Surface height required                                                       
+0020-Superadiabatic lapse rate                                                     
+0021-Superinversion                                                                
+0022-Deep inversion                                                                
+0023-Reported value does not agree with computed value                             
+0024-Pressure or height out of sort                                                
+0025-Form total is above station limits.  Element, total =                         
+0026-This element not expected for this station                                    
+0027-Invalid value in current line and column                                      
+0028-Related element(s) =                                                          
+0029-Invalid value in related element, previous line                               
+0030-Invalid value in this element, previous line                                  
+0031-Are the totals shown acceptable?                                              
+0032-Internal program error in EDIT / DSPERR                                       
+0033-Data too extreme for element generation                                       
+0034-Element generation suppressed by user                                         
+0035-Insufficient input data for element generation                                
+0036-A pressure or height is required.                                             
+0037-                                                                              
+0038-                                                                              
+0039-Error - FLAGARRAY is out of bounds - internal program error                   
+0040-All fields have been validated                                                
+0041-Alpha character required                                                      
+0042-Element for this month not found in ELEM.LIM - Element =                      
+0043-File not available:  File, routine, err-code =                                
+0044-File to be opened could not be located - File =                               
+0045-Duplicate ID records                                                          
+0046-Reported, computed height=                                                    
+0047-Error during read of lookup file - No value inserted                          
+0048-Error in call to GETMNU - Menu not found: Name =                              
+0049-Error in DSPFRM - Form too wide for current column                            
+0050-Error in GETDIST - No DISTRICT-NAMEs found                                    
+0051-Error writing .TWF or .IDX--Rtncode =                                         
+0052-Form is not available - form name =                                           
+0053-Illegal code passed to WRTFNC =                                               
+0054-Illegal flag passed to WRTVAL =                                               
+0055-Illegal value in key definition                                               
+0056-Error in FDFRESET - file archive information not found for                    
+0057-Invalid Character Entered                                                     
+0058-Limits rec not found for stn,month,elem =                                     
+0059-No elements for this station/date in STNELEM.INF                              
+0060-No limits found for this stn/obstype/month in ELEM.LIM                        
+0061-No map outline found for this datatype and dataset                            
+0062-No next record available                                                      
+0063-No prior record available                                                     
+0064-No key-entry form defined for this dataset - see manual chapter 9             
+0065-No values found for time and element given                                    
+0066-Not enough data to compute extremes - total found =                           
+0067-Number required                                                               
+0068-Observation not found                                                         
+0069-Please enter a valid number                                                   
+0070-Please enter a valid choice                                                   
+0071-Please enter an END-DATE >= BEGIN-DATE                                        
+0072-RECCODE = 1.  FNDNXT should not have been called.                             
+0073-Record request in FNDNXT is undefined.                                        
+0074-Station not found in the master station file - ID =                           
+0075-Station not open this date                                                    
+0076-Station/obs-type not found in STNELEM.INF                                     
+0077-There is an unchecked error flag at station, year/month =                     
+0078-There is no data for the period specified                                     
+0079-There are no Area-QC elements defined for this datatype and dataset           
+0080-Unable to locate end of definition: Field, Choice # =                         
+0081-Unknown data-type in call to OPENINPUT =                                      
+0082-Unknown data-type in call to RDDATA                                           
+0083-Unknown data source in call to OPENINPUT =                                    
+0084-Unknown return code from CHKKEY routine                                       
+0085-Unknown RTNCODE from RDGEOG                                                   
+0086-Value too high - Limit =                                                      
+0087-Value too low - Limit =                                                       
+0088-WARNING  Definition truncated: Field, Choice # =                              
+0089-Program failure in subroutine LOCIDX                                          
+0090-Too many groups.  ELEMENT--NBR GROUPS--MAX GROUPS:                            
+0091-Error, lookup file not found - No value inserted                              
+0092-Unexpected EOF in GETDIST found looking for DISTRICT-NAMES definitions        
+0093-ELEM.DEF units not in NORMAL.PRM - NORMAL/DEF code,Unit=                      
+0094-Not enough records to produce Normals                                         
+0095-Error in RDDEFS, # definitions invalid: FIELD,NUMBER =                        
+0096-Unexpected EOF in RDDEFS found: Field, number read =                          
+0097-Error in years at station, elem =                                             
+0098-Error in reading key entry value:  LINE,COLUMN=                               
+0099-Central station not found:                                                    
+0100-No records found                                                              
+0101-Dataset-ID is required                                                        
+0102-Spaces are not allowed in the YEAR field                                      
+0103-Unless you use F3 or Shift-F3,  Station-ID is required                        
+0104-Too many elements specified, excess ignored - max allowed =                   
+0105-You are not allowed to change data values                                     
+0106-Error in GETDEF - No Unit-Code definitions found                              
+0107-Unexpected EOF found in GETDEF looking for Unit-Codes definitions             
+0108-Invalid element code in STN ELEMENT, code and record number =                 
+0109-Invalid element code in STN ELEM EXTREMES, code and record num =              
+0110-Screen in wrong mode for call to BORDER                                       
+0111-Error in column specs for BORDER                                              
+0112-Error in row specs for BORDER                                                 
+0113-Error in command line - No command given                                      
+0114-          Form not Found                                                      
+0115-          Form already exists                                                 
+0116-          This system form can not be deleted                                 
+0117-There are fields defined beyond the height given                              
+0118-There are fields defined beyond the width given                               
+0119-You can not perform Area QC on upper air data                                 
+0120-Error - No file name passed to SAVRES routine                                 
+0121-Error - File extension passed to SAVRES is too long                           
+0122-Error - File name passed to SAVRES is too long                                
+0123-Error - File name passed to SAVRES is wrong                                   
+0124-Incorrect disk designator passed to SAVRES                                    
+0125-Incorrect screen mode passed to SAVRES                                        
+0126-Incorrect screen page number passed to SAVRES                                 
+0127-Incorrect operation code passed to SAVRES                                     
+0128-Unable to open/create file requested by SAVRES                                
+0129-Unable to do sequential read/write to file requested by SAVRES                
+0130-Unable to close file requested by SAVRES                                      
+0131-Field specified does not exist                                                
+0132-Field too long for this position                                              
+0133-Field too long for a number                                                   
+0134-Lookup Limit Field has different type                                         
+0135-Wrong format for Lookup Limit (Example FIELD 1)                               
+0136-Error - Element not defined for data entry: Element =                         
+0137-Illegal option passed to WRTSCRN: Option =                                    
+0138-Error - EOF read in FDFWRITE forms directory not saved for                    
+0139-Unknown user                                                                  
+0140-Error - No other HI level users, record not deleted                           
+0141-Please specify LO,MED or HI for Authority                                     
+0142-Please specify a valid User-name                                              
+0143-No record to modify                                                           
+0144-Please press a valid key (F2,F3,F4,F7,F8)                                     
+0145-You do not have authority to use this routine                                 
+0146-The messages in the message file are not in proper order - a line has been    
+0147-added or deleted from the middle of the file.  Error detected at line         
+0148-The new FORTRAN message file is not created - Fix the error.                  
+0149-A line in the message file has an improper message number.                    
+0150-Error detected at line                                                        
+0151-Dataset not found                                                             
+0152-Dataset already exists                                                        
+0153-Help file for this routine can not be found -                                 
+0154-Help file for this routine is not available                                   
+0155-IMPORT1 does not process upper air data.  Use IMPORT2.                        
+0156-Not enough data found for station and elements wanted. Number found =         
+0157-Unable to open file.  File name and I/O error=                                
+0158-Unable to rename load file: old name, new name =                              
+0159-Unable to rename index file: old name, new name =                             
+0160-COSORT error number                                                           
+0161-See the COSORT manual Chapter 1, Figure 1                                     
+0162-Datatype and dataset given already related to a map outline                   
+0163-COSORT did not write sorted output file =                                     
+0164-Error - Unable to set graphics mode                                           
+0165-Please enter a valid number or 'AUTO'                                         
+0166-Error - No user signed on. Please type CLICOM and sign in.                    
+0167-Too many QC checks defined. File and line =                                   
+0168-Format error in QC file. File and line =                                      
+0169-File could not be found for DataEase form -                                   
+0170-File P:/DATA/DLYEXTR2.PRM is empty. Add element codes before retrying         
+0171-File P:/DATA/10DEXTR.PRM is empty. Add element codes before retrying          
+0172-Unknown command passed to FDFRESET or RDRREC                                  
+0173-Format error in elem limit file. File and line =                              
+0174-Format error in P:/DATA/DATAQC.PRM file. Line =                               
+0175-Invalid datatype specified =                                                  
+0176-You can not select more than 6 files/cartridges at one time                   
+0177-There is no off-line cartridge with the data you have specified               
+0178-Input file is out of sort.  File is                                           
+0179-Element selected is inconsistent with Obs-Type                                
+0180-Invalid Element Code                                                          
+0181-Graph name specified already exists.  Replace it (Y/N) ?                      
+0182-Definition file for this item can not be found.                               
+0183-This entry in the index file will be removed now.                             
+0184-Too many stations found in area wanted.  Selection stops at                   
+0185-Minimum scale value must be less than maximum scale value                     
+0186-Unknown error code returned to UAPLOT by SKEWT.  Error code=                  
+0187-NODUPMRG - conflicting DataEase file names:                                   
+0188-Unknown return code detected by DRAWGRF:                                      
+0189-Error:  Timeser,skewt,or windrose requested for GRFMN2                        
+0190-Error:  Map requested for GRFMN134                                            
+0191-Error reading file:                                                           
+0192-Error writing file:                                                           
+0193-HALO error number:                                                            
+0194-Unknown printer error.   Contact a CLICOM expert. Error number=               
+0195-Unknown graphics error.  Contact a CLICOM expert. Error number=               
+0196-Procedure aborted.  File not found:                                           
+0197-Procedure aborted.  Not a HALO file/wrong type:                               
+0198-Procedure aborted.  Premature end of file:                                    
+0199-Error - Incorrect number of elements in  file:                                
+0200-Abandon changes to the form displayed                                         
+0201-Clear this entire form of all data                                            
+0202-Press any key to continue                                                     
+0203-8,'  ฤู '    <-- format is length,menu prompt - maximum length = 12        
+0204-Geographic station information has changed -                                  
+0205-Element definitions have changed -                                            
+0206-Station element information has changed -                                     
+0207-Station element extremes information has changed -                            
+0208-  Re-building QC file for this data                                           
+0209-Sort complete - Building output file...                                       
+0210-Checking for changes to geographic station info                               
+0211-Checking for changes to station element info                                  
+0212-Checking for changes to station extremes info                                 
+0213-Checking for changes to element definitions                                   
+0214-Single/Double/Solid lines or Blanks (S/D/O/B)?                                
+0215-Please answer S,D,O or B                                                      
+0216-Move the cursor to the opposite box corner and press F5                       
+0217-CLICOM Map Definition Utility,Map Name                                        
+0218-Enter the map name or press Shift-F1 to select or delete a current map        
+0219-PgDn-Nxt page, F4-Quit                                                        
+0220-PgDn-Nxt page, ESC-Quit                                                       
+0221-The following line characters have been specified                             
+0222-What is your user-id?     <--- Maximum of 24 characters total                 
+0223-Press a character for speed search                                            
+0224-        This form is to be deleted -                                          
+0225-Please answer Y or N to the border question                                   
+0226-Single/double lines or blanks (S/D/B)?                                        
+0227-Please answer S,D or B                                                        
+0228-Abandon current form -                                                        
+0229-A form with this name already exists                                          
+0230-Save modified form under a new name? (Y/N)                                    
+0231-DEASE index files must be rebuilt now.                                        
+0232-Menu not found                                                                
+0233-Menu already exists                                                           
+0234-          This system menu can not be deleted                                 
+0235-          This menu is to be deleted -                                        
+0236-Abandon the current menu -                                                    
+0237-Menu width is too small for given title and/or choices                        
+0238-Save modified menu under a new name? (Y/N)                                    
+0239-A menu with this name already exists                                          
+0240-Default background other than black (Y/N)?                                    
+0241-File was archived under DEASE 2.5 and unarchived under DEASE 4.X              
+0242-File was archived under DEASE 4.X and unarchived under DEASE 2.5              
+0243-Please enter the ID of the station to be processed                            
+0244-If you want to process all stations enter ALL                                 
+0245-Sorry - can not compute extremes for Upper Air data                           
+0246-Data files remain unchanged - output file is empty                            
+0247-Please enter Y or N                                                           
+0248-Abort or Retry (A/R)?                                                         
+0249-Please put label paper into the printer, set print head to top of label       
+0250-Please enter a valid data type (MLY,10D,DLY,SYN,HLY,15M)                      
+0251-The map specified does not exist - use Shift-F1 to lookup values              
+0252-Delete the map relationship to this Dataset -                                 
+0253-Maximum longitude must be greater than minimum                                
+0254-Maximum latitude must be greater than minimum                                 
+0255-Loading data arrays -- please wait                                            
+0256-Please insert the output diskette into drive A                                
+0257- Move the blinking |*| to the   \                                             
+0258- color you want with the arrow  \                                             
+0259- keys.  Press F2 to choose the  \                                             
+0260- color, F4/ESC to quit.         \                                             
+0261-You have changed the number of elements -                                     
+0262-A new data file will be created - the old one will be lost                    
+0263-Is this what you really want (Y/N) ?                                          
+0264-Index file has been created                                                   
+0265-Data file has been created                                                    
+0266-New key-entry definition written                                              
+0267-Routine WRTFILE is designed to work only on a color monitor                   
+0268-Format error detected by PARSE1.  Message, status code=                       
+0269-Please enter the codes for the elements to be converted                       
+0270-Enter "ALL" for all or the code for each and then 999 when finished           
+0271-16,'ACCEPT(ACCURATE)'       <--- Format of next 4 lines = length,text         
+0272-15,'ACCEPT(DUBIOUS)'                                                          
+0273-15,'REPLACE(ACTUAL)'                                                          
+0274-17,'REPLACE(ESTIMATE)'                                                        
+0275- climate data records will be copied to archive                               
+0276-DataEase     forms directory saved                                            
+0277- climate data records copied from archive to DataEase                         
+0278-DataEase form not found by FNDFIL - form wanted is                            
+0279-Searching...                                                                  
+0280-'Help','Enter','Quit','Clear Form','Clear Field','Exit'                       
+0281-'Clear Line','Insert Line','Color','Lookup','Abort','DRW BX'                  
+0282-'DEL LN','INS LN','PRNT','Field','Modify','LIMS'                              
+0283-'CLR FRM','CLR FLD','CLR LN','NXT ERR','Find Next','Nxt Band'                 
+0284-'Ctrl Area','Data Area','Prev Band','Frst Band','Nxt Page','Prev Page'        
+0285-'Copy',' ',' ',' ',' ',' '                                                    
+0286-Messages copied to text file /DATA/MESSAGES.TXT                               
+0287-Use your standard editor or word processor to modify that file, then          
+0288-use menu choice 12 to copy the file back to the FORTRAN message file          
+0289-Messages written to FORTRAN file /DATA/MESSAGES.FTN                           
+0290-New text message file is OK - Begin copy to direct FORTRAN file               
+0291-This key-entry form and all of its work files will be deleted                 
+0292-Deleting the key-entry form                                                   
+0293-January,February,March,April,May,June,July,August                             
+0294-September,October,November,December,Annual                                    
+0295-Blanks are not permitted in a file name.  File=                               
+0296-You have changed the element codes or their order -                           
+0297-This action may affect data already entered into the form                     
+0298-You must pass the data type in the command line (e.g.                         
+0299-Illegal command passed to                                                     
+0300-The key-entry file requested is empty                                         
+0301-This routine will print the definitions for ALL CLICOM forms!                 
+0302-This routine will print the definitions for ALL CLICOM menus!                 
+0303-The message file /DATA/MESSAGES.TXT does not exist - use ADMIN choice 11      
+0304-Invalid input file name passed to CHKSORT.  File:                             
+0305-Record with this ID already exists.  Overwrite it.                            
+0306-No records written.                                                           
+0307-Station,Station Name,Month,Period,District,Latitude,Longitude                 
+0308-Error reading P:\DATA\WBSTNLST.DAT:  LINE,ERROR =                             
+0309-    Specify the output file name (use / for backslash)                        
+0310-'---- More ----','--- End of Text ---'                                        
+0311-The value for the aspirated flag in P:\DATA\WBSTNLST.DAT must be A or N.      
+0312-Upper air key-entry forms are fixed - the elements can not be modified        
+0313-Enter another digit or press Enter                                            
+0314-Map relationship to this datatype and dataset added/modified                  
+0315-Map relationship to this datatype and dataset deleted                         
+0316-Delete this map                                                               
+0317-Record min,Record max,Mean                                                    
+0318-อ Enter-select อ F7-Del อ F4-Quit อ F1-Help ออออออ                            
+0319-อ Enter-select อ F7-Del อ ESC-Quit อ F1-Help ออออออ                           
+0320-อ Enter-select อ F4-Quit อ F1-Help ออออออออออ                                 
+0321-อ Enter-select อ ESC-Quit อ F1-Help ออออออออออ                                
+0322-Rebuild temporary Area-QC files                                               
+0323-Please enter the Element-Code you would like plotted                          
+0324-The Element entered is not an Area-QC element                                 
+0325-Please enter the day/hour you would like plotted                              
+0326-Please enter a valid time                                                     
+0327-Global limits       ,Global form total   ,Global elem relshp                  
+0328-Elem Relationship   ,Rel Elem prev line  ,Global change rate                  
+0329-Display form total  ,                    ,                                    
+0330-Stn record values   ,Stn stat tests      ,Stn change rate                     
+0331-Stn form total      ,                    ,                                    
+0332-                    ,                    ,                                    
+0333-QC-Type                 Relshp    Value    Elem   Relshp   Value              
+0334-Group size must be greater than zero                                          
+0335-Making a backup copy of the index file for                                    
+0336-Backup index file is                                                          
+0337-No records found to load                                                      
+0338-Records to be added =                                                         
+0339-Total records will  =                                                         
+0340-Number of new extremes records written =                                      
+0341-         Attempt to write new limits is skipped                               
+0342-Illegal date format:                                                          
+0343-Line=    Col=    F1 Help  F3 Exit   F4 Line   Alt-K Delete Line               
+0344-F4:Line     L - mark Line   C - Copy    M - Move    R - Remove marks          
+0345-F3:Exit     E - Exit and save    S - Save    Q - Quit without saving          
+0346-Unable to open output file - New file name ? >                                
+0347-specifies      elements in the output observation.                            
+0348-The element output information is shown below.                                
+0349-Element  Format  Scale   Missing                                              
+0350---->Element      - missing values can not be written with the format given    
+0351-Do you wish to change the format of the output observation?                   
+0352-(1-No, 2-Temporarily, 3-Permanently)                                          
+0353-The data you have specified is stored on more than one file/cartridge.        
+0354-You can select data from up to 6 files/cartridges to merge together.          
+0355-Please highlight the files you want by moving to those files and pressing     
+0356-the space bar.                                                                
+0357-Enter the source form file name:                                              
+0358-The file specified already exists on the cartridge specified.  The new        
+0359-data written will replace the data in the existing file.                      
+0360-The data you have specified is stored on more than 14 files/cartridges.       
+0361-Please provide more specific selection criteria.                              
+0362-    File      Cartridge    Station-Range       Date-Range   Last-Used         
+0363-Input File-2 is empty.  File name =                                           
+0364-There is therefore no need to modify input File-1 -                           
+0365-Processing stops here                                                         
+0366-New graph name ?,Description ?                                                
+0367-Save this graph definition under a new name (Y/N) ?                           
+0368-             Please select the elements you would like plotted                
+0369-To select a long term mean or extreme for an element, add the following       
+0370-appropriate value to the element code:                                        
+0371-         1000--Mean    2000--Maximum    3000--Minimum                         
+0372-Delete this record/file (Y/N)?                                                
+0373-Enter the form name or press Shift-F1 to select or delete a current form      
+0374-CLICOM FORTRAN Form Definition Utility,Form Name,New Name                     
+0375-CLICOM Batch File Menu Screen Definition Utility,Screen Name,New Name         
+0376-No stations found in the area you have specified.                             
+0377-Too many values possible in date range specified - Maximum allowed =          
+0378-N,NNE,NE,ENE,E,ESE,SE,SSE,S,SSW,SW,WSW,W,WNW,NW,NNW                           
+0379-Product of groups and intervals too large - Maximum product =                 
+0380-Please wait.  Print takes a few minutes to complete.                          
+0381-Value not equal to allowed choices - Choices =                                
+0382-End of file encountered:                                                      
+0383-Cannot position file before first record                                      
+0384-Rewind band to align plot width and first data column                         
+0385-Array size too small to hold data frame                                       
+0386-Incomplete number of frames in band                                           
+0387-Cannot add a frame to current band                                            
+0388-First frame -- start of band 1 set to frame 1                                 
+0389-Interval bands allowed only for timeseries and map                            
+0390-First frame -- start of band 1 reset to row 1 in frame 1                      
+0391-File cannot be positioned to start of band                                    
+0392-Should end row value always be the end of frame                               
+0393-Changes will be saved before new data is read                                 
+0394-Frame appended to data in memory                                              
+0395-Bands not aligned -- Rewind file -- Band 1 begins in row 1 of frame 1         
+0396-Changes will be saved for incomplete band                                     
+0397-Abandon changes to form and reposition file                                   
+0398-Bands not aligned -- Rewind file -- Band 1 begins in frame 1                  
+0399-Upper air data not allowed with timeseries plots                              
+0400-Date range for map must not cross a time unit boundary                        
+0401-Hour value must agree with entries in P:\DATA\DATAQC.PRM -- HOUR=             
+0402-The form you selected may be a standard CLICOM form.                          
+0403-You must select at least one element in order to select means/extremes        
+0404-Overwrite this form                                                           
+0405-Number of days specified exceeds the limit for the current month and year     
+0406-Means and extremes are not available for this data type                       
+0407-Means and extremes may be selected only for timeseries and map                
+0408-The DEASE environment variable is not set; call System Administrator          
+0409-Wind units in ELEM.DEF differ from WROSPOKE.PRM. Processing stops here        
+0410-Invalid element code for wind direction or speed.  Processing stops here.     
+0411-Enter screen name                                                             
+0412-Form already exists.  Overwrite it?                                           
+0413-Menu deleted                                                                  
+0414-The menu you selected may be a standard CLICOM menu.                          
+0415-Overwrite this menu                                                           
+0416-Delete this menu:                                                             
+0417-Menu replaced                                                                 
+0418-Save menu under a new name? (Y/N)                                             
+0419-Input file has duplicate records.  File is                                    
+0420-Enter the source menu file name.                                              
+0421-Menu already exists.  Overwrite it?                                           
+0422-New menu written.                                                             
+0423-Enter the destination menu file name.                                         
+0424-File does not exist.  Create it?                                              
+0425-               What is your User-ID?                                          
+0426-No station limit checks will be performed.                                    
+0427-Station limit checks requested but not allowed for this data type:            
+0428-The MAX/MIN fields in STN ELEMENT EXTREMES were updated.  You must            
+0429-run Monthly Means and Extremes (4.2.5) to correctly update all fields.        
+0430-You are not allow to merge the same key-entry file in CLICOM:                 
+0431-The number of elements defined in both key-entry files do not match:          
+0432-The elements defined in both key-entry files aren't identical or same order.  
+0433-                                                                              
+0434-Your current cursor is located at upper left corner of a box.  To draw a box, 
+0435-you must move the cursor to lower right corner by using the arrow keys and    
+0436-press F5 to begin.  Do you want to continue (Y/N) ?                           
+0437-                                                                              
+0438-                                                                              
+0439-The wind rose requires two element codes:  speed, direction                   
+0440-Contour increment too large -- Value ignored                                  
+0441-Are you using the IBM PC-LAN network software (Y/N) ?                         
+0442-No data to plot.  Either values are missing or pressures are too low.         
+0443-Pressure or height out of sort.  SKEWT cannot draw height labels.             
+0444-The option to modify the viewport is not available in CLICOM 3.0              
+0445-The new font at the current size is too big. Change the size, then            
+0446-you will be able to change the font. Press any key to continue.               
+0447-The size of the legend is too big to be drawn. To display the legend,         
+0448-Select a smaller text size or font.  Press any key to continue.               
+0449-The size of the revised legend will be too big to be drawn on the plot.       
+0450-Save this map under a new name ?                                              
+0451-Enter map name.                                                               
+0452-Map name specified already exists.                                            
+0453-Description for this map.                                                     
+0454-Plots will be printed upon exit from CLICOM due to network constraints        
+0455-Data will be erased from on-line:                                             
+0456-Printer now in use is the PRIMARY printer                                     
+0457-Printer now in use is the ALTERNATE printer                                   
+0458-Verify that the DOS command             SET HALOID=                           
+0459-is in the CLICOM.BAT file when starting as a reader on the network            
+0460-You MUST select a video display device. Otherwise CLICOM graphics does        
+0461-not work. Press F4/ESC to quit or any other key to try again.                 
+0462-Error opening file P:\DATA\ELEM.DEF.                                          
+0463-Invalid element code for wind speed. No wind speed labels for legend          
+0464-Error opening file O:\DATA\WROSPOKE.PRM.                                      
+0465-The primary printer is connected to the reader's PC.  A reader without        
+0466-a printer must use the printer connected to the server's PC.                  
+0467-Enter a 1 letter ID (B thru Z) for this reader's graphical environment        
+0468-    PRIMARY, ALTERNATE                                                        
+0469-This printer does not do dithered output.                                     
+0470-Updates will be saved                                                         
+0471-This printer does not do multiple copies.                                     
+0472-This printer does not suppress form feeds.                                    
+0473-This printer always centers the plot.                                         
+0474-This printer does not do offsets from the left edge of the page.              
+0475-This printer does not do offsets from the top edge of the page.               
+0476-This printer does not do variable size plots.                                 
+0477-This printer has only 1 print resolution.                                     
+0478-Select centering option, or offsets from page edge, but not both.             
+0479-The offset plus width exceeds the page size.                                  
+0480-This printer does not plot at the selected resolution.                        
+0481-Too many errors. Fix above errors before continuing.                          
+0482-Not enough free disk space.  Print aborted.                                   
+0483- Calm + Misc.                                                                 
+0484- Mean Speed=,Nbr Reports=,Units=                                              
+0485- Temperature,Dew Point,Mixing Ratio,Moist Adiabat,Dry Adiabat                 
+0486- Zoom                                                                         
+0487-Must select the primary printer before the alternate printer.                 
+0488-Display paper sizes in which units?  1=ENGLISH or 2=METRIC                    
+0489-VGA mode not available for this device; using EGA mode instead.               
+0490-Program will rewind file now.                                                 
+0491- F4-Exit, PgDn-Nxt page, PgUp-Prev page                                       
+0492- ESC-Exit, PgDn-Nxt page, PgUp-Prev page                                      
+0493- F4-Exit help, PgDn-Next page, PgUp-Previous page                             
+0494- F4-Exit help, PgDn-Next page, PgUp-Previous page                             
+0495- ESC-Exit help, PgDn-Next page, PgUp-Previous page                            
+0496-F2-Enter  F4-Quit   Space-Select    Up and down arrows to move up and down    
+0497-F2-Enter ESC-Quit   Space-Select    Up and down arrows to move up and down    
+0498-F2-Exit  F3-Next  F4-Quit  SPACE-View                                         
+0499-F2-Exit  F3-Next ESC-Quit  SPACE-View                                         
+0500-Y,y                                                                           
+0501-N,n                                                                           
+0502-Yes,No                                                                        
+0503-OK (Y/N) ?                                                                    
+0504-Enter 'Y' to exit, 'N' to continue:                                           
+0505-Replace it (Y/N) ?                                                            
+0506-Do you want to exit graphics?                                                 
+0507-Press F4 or ESC to quit, RETURN to continue                                   
+0508- --                                                                           
+0509-Current value for number of contour intervals =                               
+0510-Enter a new value (1-20):                                                     
+0511-Current value for contour increment =                                         
+0512-Enter a new value (include decimal):                                          
+0513-This choice is allowed only if contour intervals are already defined          
+0514-Contour increment less than or equal to 0 -- Value ignored                    
+0515-Number of intervals outside range 1-20 -- Value ignored                       
+0516-Must set printer options first.                                               
+0517-Must select a printer. See manual for help.                                   
+0518-No alternate printer.  Using the main printer.                                
+0519-Verify that printer is on-line and ready.                                     
+0520-Illegal printer option.  No printout produced.                                
+0521-Printing aborted after 3 attempts.                                            
+0522-Printer device timeout. Code=20.                                              
+0523-Printer out of paper.                                                         
+0524-Print cancelled by user                                                       
+0525-Do a quick screen print ?                                                     
+0526-Enter graph name                                                              
+0527-NAME--                                                                        
+0528-Do you want to save the current graph definition?                             
+0529-Graph screen name already exists.                                             
+0530-Description for this screen                                                   
+0531-Graph definition already exists.                                              
+0532-Save this graph definition under a new name                                   
+0533-Description for this graph definition                                         
+0534-Program will rewind band now.                                                 
+0535-No more plots in this band                                                    
+0536-Cannot change 1st 4 colors of a palette                                       
+0537-Change Axis Tic Size                                                          
+0538-Current value =                                                               
+0539-Enter a number between 0 - 4:                                                 
+0540-Enter a number between 0 - 10:                                                
+0541-Sample Size 123                                                               
+0542-No text labels for selected item                                              
+0543-No legend drawn on plot                                                       
+0544-Revised text was originally flush with an edge of                             
+0545-the plot. Keep the text flush ? Y/N                                           
+0546-A grid option must be specified before line attributes can be modified        
+0547-No data for current plot--use menu choice #9 to check data                    
+0548-No data found for the station, dates, or elements requested                   
+0549-Plotter routine is not working.                                               
+0550-Last station-ID read from station selection list file:                        
+0551-Illegal option in DATACOM.CON--check for error return from OPTMAN             
+0552-TEXT-                                                                         
+0553-Value entered is too large or small                                           
+0554-Not enough array space to open graphics window.                               
+0555-CLICOM 3.0,Graph Options,Row:,Column:,Graf-axis:                              
+0556-Time Series,Contour Map,Sounding,Wind Rose                                    
+0557-OFF,HOR,VER                                                                   
+0558-AUTO                                                                          
+0559-L,R                                                                           
+0560-P,I                                                                           
+0561-Records read -,Records processed -                                            
+0562-Writing...                                                                    
+0563-N,NE,E,SE,S,SW,W,NW                                                           
+0564-Number of windrose directions:                                                
+0565-Current number of windrose rings =                                            
+0566-Enter new value (1-10):                                                       
+0567-Number of windrose rings outside range 1-10 -- Value ignored                  
+0568-Number rings must be less than or equal to percent for outer ring-            
+0569-Current percent for outer ring =                                              
+0570-Enter new value (1-100):                                                      
+0571-Percent for outer ring outside range 1-100 -- Value ignored                   
+0572-Percent for outer ring must be greater than the number of rings-              
+0573-Current width of smallest bar =                                               
+0574-Enter new value (1-3):                                                        
+0575-Width of smallest bar outside range 1-3 -- Value ignored                      
+0576-MLR,SCR                                                                       
+0577-You are not allowed to change values with multiple data frames in memory      
+0578-You are not allowed to change the map subtitle.  Revise column headers.       
+0579-Maximum file size exceeded.  No more records will be written.                 
+0580-Station Selection List:                                                       
+0581-You are only allowed to use option #1 with file 'STNGEOG'.                    
+0582-Check station list file -- records not found in STNGEOG.INF were deleted      
+0583-         Selected =      Available =                                          
+0584-New station selection list name ?                                             
+0585-Save this station selection list under a new name (Y/N) ?                     
+0586-Station list name specified already exists.  Replace it (Y/N) ?               
+0587-Description ?                                                                 
+0588-Station-ID not found in STNGEOG.INF:                                          
+0589-อEnter-select อ F9-Options อ F4-Quit อ F1-Helpออ                              
+0590-อEnter-select อ F9-Options อ ESC-Quit อ F1-Helpอ                              
+0591-อ Enter-Toggle อ F2-Save อ F4-Quit อ F1-Help อออ                              
+0592-อ Enter-Toggle อ F2-Save อ ESC-Quit อ F1-Help ออ                              
+0593-Station list limit exceeded.  Max stations allowed:                           
+0594-Station list file deleted:                                                    
+0595-Station list file printed:                                                    
+0596-Error - array BUFFER too small for WNDSMRY - program error in GRAFINIT        
+0597-You must enter the name of a station list file.                               
+0598-You must select a list file before you can use this option.                   
+0599-Define a map screen file in ADMIN.  PRESS ANY KEY TO CONTINUE.                
+0600-Map screen saved.  File:                                                      
+0601-HALO environment file not found.  Check HALOID in CLICOM.BAT file.            
+0602-Menu choices 4,5,6 require a plot displayed on the screen.                    
+0603-Premature exit from GRAFINIT -- GRAPHICS.API file is incomplete.              
+0604-Previous file action cancelled.                                               
+0605-File action cancelled                                                         
+0606-อ Enter-select อ F4-Quit อ F1-Help อ PgDn-Nxt page ออ                         
+0607-อ Enter-select อ ESC-Quit อ F1-Help อ PgDn-Nxt page อ                         
+0608-Record modified                                                               
+0609-End of processing                                                             
+0610-Element 102 not found for station in STNELEM.INF -- aspirated values assumed  
+0611-Illegal NORMAL type in P:\DATA\NORMAL.PRM:                                    
+0612-                                                                              
+0613-                                                                              
+0614-                                                                              
+0615-You have not defined the replacement map:                                     
+0616-* The signs of the LAT or LON values were mixed.  The LAT/LON values must be  
+0617-all positive or negative within a line segment.  Refer to trouble shooting    
+0618-section in the Replacement Map Guide.                                         
+0619-The input data file is empty:                                                 
+0620-The last line in the input data file must be 99 99 99 99 99 99.  Otherwise,   
+0621-the last line segment will be ignored.                                        
+0622-The replacement map file already exists.  Do you want to modify it (Y/N) ?    
+0623-The error message was written into the file:                                  
+0624-Line:,Lat/Lon:,Error:,Error reading file:,Latitude:,Longitude:                
+0625-SIGN mixed within line segment *,Value is too high,Value is too low           
+0626-Invalid end of line segment.                                                  
+0627-The replacement map is not created -- Default CLICOM map is used.             

@@ -1,0 +1,652 @@
+$STORAGE:2
+      SUBROUTINE PRNTOPHP 
+C------------------------------------------------------------------------------
+C     REVISE THE OPTIONS FOR THE PRINTER (PRIMARY OR ALTERNATE WHICHEVER IS
+C     CURRENTLY SELECTED) DEFINED BY THE ADMIN PGM.  THIS ROUTINE OPERATES 
+C     OUTSIDE OF GRAPHICS MODE TO TAKE ADVANTAGE OF CLICOM'S FORM PGM. 
+C------------------------------------------------------------------------------
+$INCLUDE: 'HALOENV.INC'
+C
+      INTEGER*2    HLPLVL
+      CHARACTER*9  FIELD(20)
+      CHARACTER*1  YN,YESUP,YESLO
+      CHARACTER*2  INCHAR
+      CHARACTER*9 ACTPRHDR(2)
+      CHARACTER*78 HELPFILE
+      COMMON /PROPSV/ HLPLVL,FIELD,ACTPRHDR,HELPFILE,YESUP,YESLO,INCHAR
+C
+      CHARACTER*1  RTNCODE
+      LOGICAL      FIRSTCALL
+      DATA FIRSTCALL /.TRUE./
+C
+      IF (FIRSTCALL) THEN
+         FIRSTCALL = .FALSE.
+         CALL GETYN(1,1,YESUP,YESLO)
+C ----   GET PRIMARY & ALTERNATE TITLES FROM MESSAGE FILE
+         CALL GETMSG(468,HELPFILE)
+         ACTPRHDR(1) = '          '
+         ACTPRHDR(2) = '          '
+         CALL PARSE1(HELPFILE,78,2,9,ACTPRHDR,ISTAT)         
+C         
+         DO 20 I=1,2      
+C **DEBUG
+        WRITE(999,*)'I,ACTPR=',I,'-',ACTPRHDR(I),'-'
+            LEN = LNG(ACTPRHDR(I))
+            HELPFILE = ACTPRHDR(I)
+            ACTPRHDR(I) = '          '
+            ACTPRHDR(I)(9-LEN+1:)=HELPFILE
+C **DEBUG
+        WRITE(999,*)'LEN,ACTPR=',LEN,'-',ACTPRHDR(I),'-'            
+   20    CONTINUE         
+C        
+         HELPFILE  = 'P:\HELP\PRNTOP.HLP'
+      ENDIF
+C     
+      CALL OPTFRMA(RTNCODE)
+      IF (RTNCODE.NE.'0') GO TO 200
+      CALL OPTFRMB(RTNCODE)
+      IF (RTNCODE.NE.'0') GO TO 200
+C
+C-----   MAKE PRINTER OPTIONS PERMANENT
+C
+      YN = ' '
+      CALL WRTMSG(3,470,14,1,0,' ',0)
+      CALL OKREPLY(YN,RTNCODE)
+      CALL LOCATE(22,1,IER)
+      IF (YN .EQ. YESUP .OR. YN .EQ. YESLO) THEN
+          OPEN (UNIT=44,FILE=ENVFILE,FORM='FORMATTED')
+          WRITE(44,700) DEVICE,DEVMODE,AQCMODE,NETWORK,ACTVPTR,
+     +                ((PRINTR(I,J),I=1,2),(PTRVAL(I,J),I=0,MXPTRV),
+     +                  UNTFLG(J),CLRFLG(J),CLRMOD(J),PTRASP(J),J=1,2)
+          CLOSE (44)
+      ENDIF
+  200 CONTINUE      
+      RETURN
+C
+C       ** FORMAT STMTS
+C
+  700 FORMAT('''',A30,'''',4(',',I5),','/
+     +   2(2('''',A30,''',')/,3(9(I5,','/)),3(I5,','),F6.3/))
+C     
+      END
+***************************************************************************
+      SUBROUTINE OPTFRMA(RTNCODE)
+C      
+      CHARACTER*1  RTNCODE
+C      
+$INCLUDE: 'HALOENV.INC'
+C      
+      INTEGER*2    HLPLVL
+      CHARACTER*9  FIELD(20)
+      CHARACTER*1  YN,YESUP,YESLO
+      CHARACTER*2  INCHAR
+      CHARACTER*9 ACTPRHDR(2)
+      CHARACTER*78 HELPFILE
+      COMMON /PROPSV/ HLPLVL,FIELD,ACTPRHDR,HELPFILE,YESUP,YESLO,INCHAR
+C
+      CHARACTER*9 FLD2(5,3)
+      EQUIVALENCE (FIELD(2),FLD2(1,1))
+C      
+      PARAMETER (MXDPIMOD=5)
+      INTEGER*2   PTRINQ(0:8),DPIMOD(5)     
+      EQUIVALENCE (PTRINQ(4),DPIMOD(1))
+      COMMON /OPTFASV/ PTRINQ
+C      
+      INTEGER*2 PTRSUP(0:63),MAXX,MAXY,XDPI,YDPI,WIDE,WIDTH,HGT,
+     +          FORMFD,ORIENT,DPI,COPIES,CENTER,XOFSET,YOFSET, 
+     +          RESOL,DITHER
+      REAL*4       LOFSET,LTOPST
+      CHARACTER*2 UNITS(2)
+      COMMON /OPTFBSV/ PTRSUP,MAXX,MAXY,XDPI,YDPI,WIDE,WIDTH,HGT,
+     +                 FORMFD,ORIENT,DPI,COPIES,CENTER,XOFSET,YOFSET,
+     +                 RESOL,DITHER,   LOFSET,LTOPST,   UNITS
+C      
+      RTNCODE = '0'
+      IDPTR = ACTVPTR+1
+C
+C       .. GET HEADER FOR DPI MODES WHICH CONTAINS NUMBER OF DPI MODES
+      PTRINQ(3) = 0
+      CALL INQPRN(PTRINQ)
+      NDPIMOD = MIN0(PTRINQ(3),MXDPIMOD)
+      DO 15 I=1,20
+         FIELD(I)=' '
+   15 CONTINUE      
+      DO 20 I=1,NDPIMOD
+         PTRINQ(3) = 1
+         PTRINQ(4) = I-1
+         CALL INQPRN(PTRINQ)
+         WRITE(FLD2(I,1),500) DPIMOD(1)   
+         WRITE(FLD2(I,2),501) DPIMOD(4)   
+         WRITE(FLD2(I,3),501) DPIMOD(5)   
+C **DEBUG
+        WRITE(999,*)'PTRINQ=',(PTRINQ(J),J=0,8)
+   20 CONTINUE   
+C   
+C       .. PRINTER LABEL AND COLOR MODE
+      FIELD(1) = ACTPRHDR(IDPTR)
+      WRITE(FIELD(19),500) CLRMOD(IDPTR)
+C      
+C       .. PRINTER RESOLUTION
+      IDRESOL = PTRVAL(7,IDPTR)
+      IF (IDRESOL .EQ. -1) THEN
+         IDRESOL = PTRINQ(2)
+      ENDIF
+      IDRESOL = MIN0(MAX0(0,IDRESOL),4)
+      WRITE(FIELD(17),500) IDRESOL
+C      
+C       .. PAPER SIZE   1   2   4   8  16  32     
+C                  ID   0   1   2   3   4   5
+      IDSIZ = MAX0(1,PTRVAL(2,IDPTR))
+      IDSIZ = NINT(ALOG(FLOAT(IDSIZ))/ALOG(2.))
+      IDSIZ = MIN0(MAX0(0,IDSIZ),5)
+      WRITE(FIELD(18),500) IDSIZ
+C
+C       .. PAGE ORIENTATION
+      ORIENT = MIN0(MAX0(0,PTRVAL(2,IDPTR)),1)
+      WRITE(FIELD(20),500) ORIENT
+C      
+  100 CONTINUE
+      INCHAR='  '
+      CALL CLS
+      CALL LOCATE(0,0,IER)
+      CALL GETFRM('HALOPRNA',HELPFILE,FIELD,9,INCHAR)
+      CALL LOCATE(0,0,IER)
+C
+C---  ASK IF USER WANTS TO ABANDON FORM 
+C
+      IF (INCHAR .EQ. '4F' .OR. INCHAR .EQ. 'ES') THEN
+         YN = ' '
+         CALL WRTMSG(3,200,14,1,0,' ',0)
+         CALL LOCATE(22,55,IER)
+         CALL OKREPLY(YN,RTNCODE)
+         IF (YN .EQ. YESUP .OR. YN .EQ. YESLO) THEN
+            IDCLR = CLRMOD(IDPTR)+1
+            CALL SETPRN(PRINTR(IDCLR,IDPTR))
+            CALL SETPRA(2,PTRVAL(2,IDPTR))
+            CALL SETPRA(7,PTRVAL(7,IDPTR))
+            CALL SETPRA(22,PTRVAL(22,IDPTR))
+            RTNCODE = '1'
+            GO TO 900
+         ELSE
+            GO TO 100
+         ENDIF
+      ENDIF
+C      
+      NUMER = 0
+      NLIN  = 5
+C      
+C **DEBUG
+        WRITE(999,*)'FIELD-17,18,19=',FIELD(17),FIELD(18),FIELD(19)
+      READ(FIELD(17),500) IDRESOL
+      READ(FIELD(18),500) IDSIZ
+      READ(FIELD(19),500) IDBWCL
+      READ(FIELD(20),500) ORIENT
+C **DEBUG
+        WRITE(999,*)'IDRESOL,IDBWCL,IDSIZ,ORIENT=',
+     +               IDRESOL,IDBWCL,IDSIZ,ORIENT
+C      
+C       .. COLOR MODE -- COLOR VS BLACK WHITE
+      IF (IDBWCL.EQ.1 .AND. CLRFLG(IDPTR).EQ.0) THEN
+C          .. ERROR:  COLOR MODE SELECTED FOR BLACK/WHITE PRINTER
+         NUMER = NUMER+1
+         NLIN = NLIN-1        
+         CALL WRTMSG(NLIN,630,14,0,0,' ',0)
+      ELSE   
+         IF (IDBWCL.NE.CLRMOD(IDPTR)) THEN
+            CALL SETPRN(PRINTR(IDBWCL+1,IDPTR))
+            CALL CKHALOER(1,'SETPRN',IER)
+            IF (IER.NE.0) GO TO 900
+         ENDIF
+      ENDIF
+C
+C       .. PRINTER RESOLUTION IN DOTS PER INCH      
+      IF (IDRESOL+1.GT.NDPIMOD) THEN
+C          .. ERROR:  SELECTED RESOLUTION NOT SUPPORTED BY PRINTER      
+         NUMER = NUMER+1
+         NLIN = NLIN-1        
+         CALL WRTMSG(NLIN,628,14,0,0,' ',0)
+      ELSE   
+         NPAT = 7
+         IF (IDRESOL.NE.PTRVAL(NPAT,IDPTR)) THEN
+            CALL SETPRA(NPAT,IDRESOL)
+            CALL CKHALOER(1,'SETPRA-7',IER)
+            IF (IER.NE.0) GO TO 900
+         ENDIF
+      ENDIF
+C      
+C       .. PAPER SIZE
+      NPAT = 22
+      IPGSIZ = NINT(2**IDSIZ)              
+      CALL SETPRA(NPAT,IPGSIZ)
+      CALL INQERR(IFUNC,IER)
+      IF (IER.NE.0) THEN
+C          .. ERROR:  PAPER SIZE NOT SUPPORTED FOR THIS PRINTER
+         NUMER = NUMER+1
+         NLIN = NLIN-1        
+         CALL WRTMSG(NLIN,629,14,0,0,' ',0)
+      ENDIF
+C
+C       .. ORIENTATION      
+      NPAT = 2
+      CALL SETPRA(NPAT,ORIENT)
+      CALL INQERR(IFUNC,IER)
+      IF (IER.NE.0 .AND. NUMER.LT.4) THEN
+C          .. ERROR:  ORIENTATION NOT SUPPORTED FOR THIS PRINTER
+         NUMER = NUMER+1
+         NLIN = NLIN-1        
+         CALL WRTMSG(NLIN,631,14,0,0,' ',0)
+      ENDIF
+C      
+      IF (NUMER.GT.0) THEN
+         NLIN = NLIN-1        
+         CALL WRTMSG(NLIN,202,14,1,0,' ',0)
+         CALL GETCHAR(0,INCHAR)
+         GO TO 100
+      ENDIF
+C      
+      CLRMOD(IDPTR)     = IDBWCL
+      PTRVAL(2,IDPTR)   = ORIENT
+      PTRVAL(7,IDPTR)   = IDRESOL
+      PTRVAL(22,IDPTR)  = IPGSIZ
+C      
+      PTRINQ(3) = 1
+      PTRINQ(4) = IDRESOL
+      CALL INQPRN(PTRINQ)
+      MAXX = DPIMOD(2)
+      MAXY = DPIMOD(3)
+      XDPI = DPIMOD(4)
+      YDPI = DPIMOD(5)
+C
+C **DEBUG
+        WRITE(999,*)'NORMAL END TO OPTFRMA'
+      RETURN
+C      
+  900 CONTINUE
+C **DEBUG
+        WRITE(999,*)'ERROR END TO OPTFRMA'
+      RTNCODE='1'
+      RETURN
+C
+C       ** FORMAT STMTS
+C
+  500 FORMAT(I1)      
+  501 FORMAT(I3)      
+C      
+      END      
+***************************************************************************
+      SUBROUTINE OPTFRMB(RTNCODE)
+C
+$INCLUDE: 'HALOENV.INC'
+C      
+      INTEGER*2    HLPLVL
+      CHARACTER*9  FIELD(20)
+      CHARACTER*1  YN,YESUP,YESLO
+      CHARACTER*2  INCHAR
+      CHARACTER*9 ACTPRHDR(2)
+      CHARACTER*78 HELPFILE
+      COMMON /PROPSV/ HLPLVL,FIELD,ACTPRHDR,HELPFILE,YESUP,YESLO,INCHAR
+C
+      INTEGER*2 PTRSUP(0:63),MAXX,MAXY,XDPI,YDPI,WIDE,WIDTH,HGT,
+     +          FORMFD,ORIENT,DPI,COPIES,CENTER,XOFSET,YOFSET, 
+     +          RESOL,DITHER
+      REAL*4       LOFSET,LTOPST
+      CHARACTER*2 UNITS(2)
+      COMMON /OPTFBSV/ PTRSUP,MAXX,MAXY,XDPI,YDPI,WIDE,WIDTH,HGT,
+     +                 FORMFD,ORIENT,DPI,COPIES,CENTER,XOFSET,YOFSET,
+     +                 RESOL,DITHER,   LOFSET,LTOPST,   UNITS
+C      
+      CHARACTER*1  RTNCODE
+C      
+      DATA UNITS/'IN','CM'/
+C **DEBUG
+        WRITE(999,*)'BEG OPTFRMB-- ACTVPTR=',ACTVPTR
+C      
+      IDPTR = ACTVPTR+1
+C      
+      WIDTH  = PTRVAL(0,IDPTR)
+      HGT    = PTRVAL(1,IDPTR)
+      FORMFD = PTRVAL(5,IDPTR)
+      DPI    = PTRVAL(7,IDPTR)
+      COPIES = MAX0(1,PTRVAL(8,IDPTR))
+      CENTER = PTRVAL(9,IDPTR)
+      XOFSET = PTRVAL(10,IDPTR)
+      YOFSET = PTRVAL(11,IDPTR)
+      RESOL  = PTRVAL(17,IDPTR)
+      DITHER = PTRVAL(19,IDPTR)
+      USCALE = UNTFLG(IDPTR) / 100.
+      IF (USCALE .EQ. 1.00) THEN
+         IDUNIT = 1
+      ELSE
+         IDUNIT = 2
+      ENDIF
+      CALL INQPAT(PTRSUP)
+      HLPLVL = 1
+C
+C---  SET FIELDS IN THE PRINTER CONFIGURATION FORM TO THE CURRENT VALUES
+C
+C **DEBUG
+      WRITE(999,*)'FRMB--ORIENT,MAXX,MAXY=',ORIENT,MAXX,MAXY
+      WRITE(999,*)'XDPI,YDPI=',XDPI,YDPI
+      FIELD(1) = ACTPRHDR(IDPTR)
+      XPAPRSZ = (FLOAT(MAXX) / XDPI) * USCALE
+      WRITE(FIELD(2),520) XPAPRSZ
+      YPAPRSZ = (FLOAT(MAXY) / YDPI) * USCALE
+      WRITE(FIELD(4),520) YPAPRSZ
+C      
+      FIELD(3) = UNITS(IDUNIT)
+      FIELD(5) = UNITS(IDUNIT)
+C      
+C       .. COPIES
+      WRITE(FIELD(6),530) COPIES
+C      
+C       .. FORM FEED      
+      IF (PTRSUP(5) .EQ. 1) THEN
+         IF (FORMFD .LT. 1) THEN
+            FIELD(7) = '1 '
+         ELSE
+            FIELD(7) = '2 '
+         ENDIF
+      ELSE
+         FIELD(7) = '9 '
+      ENDIF
+C      
+C       .. DITHERING
+      IF (PTRSUP(19) .GT. 0) THEN
+         IF (DITHER .EQ. 0) THEN
+            FIELD(8) = '2 '
+         ELSE
+            FIELD(8) = '1 '
+         ENDIF
+      ELSE
+         FIELD(8) = '9 '
+      ENDIF
+C       .. CENTER PLOT
+      IF (PTRSUP(9) .EQ. 1) THEN
+         IF (CENTER .LT. 1) THEN
+            FIELD(9) = '1 '
+         ELSE
+            FIELD(9) = '2 '
+         ENDIF
+      ELSE
+         FIELD(9) = '9 '
+      ENDIF
+C       .. PLOT WIDTH
+      IF (PTRSUP(0) .EQ. 1) THEN
+         IF (WIDTH .GE. 0) THEN
+            CM = (FLOAT(WIDTH) / XDPI) * USCALE
+            WRITE(FIELD(10),520) CM
+         ELSE
+            FIELD(10) = '    '
+         ENDIF
+      ELSE
+         WRITE(FIELD(10),520) XPAPRSZ
+      ENDIF
+C       .. LEFT OFFSET      
+      IF (PTRSUP(10) .EQ. 1) THEN
+         IF (XOFSET .GE. 0) THEN
+            LOFSET = (FLOAT(XOFSET) / XDPI) * USCALE
+            WRITE(FIELD(11),520) LOFSET
+         ELSE
+            FIELD(11) = '   '
+         ENDIF
+      ELSE
+         FIELD(11) = '99.9'
+      ENDIF
+C       .. TOP OFFSET
+      IF (PTRSUP(11) .EQ. 1) THEN
+         IF (YOFSET .GE. 0) THEN
+            LTOPST = (FLOAT(YOFSET) / YDPI) * USCALE
+            WRITE(FIELD(12),520) LTOPST
+         ELSE
+            FIELD(12) = '   '
+         ENDIF
+      ELSE
+         FIELD(12) = '99.9'
+      ENDIF
+C
+   90 NUMER = 0
+  100 INCHAR='  '
+      ISZ   = XPAPRSZ
+      CALL CLS
+      CALL LOCATE(1,1,IER)
+      CALL GETFRM('HALOPRNB',HELPFILE,FIELD,9,INCHAR)
+      CALL LOCATE(1,1,IER)
+C
+C---  ASK USER TO ABANDON FORM IF STILL ERRORS ON IT. OTHERWISE, RESET FORM
+C
+      IF (INCHAR .EQ. '4F' .OR. INCHAR .EQ. 'ES') THEN
+         YN = ' '
+         CALL WRTMSG(3,200,14,1,0,' ',0)
+         CALL LOCATE(22,55,IER)
+         CALL OKREPLY(YN,RTNCODE)
+         IF (YN .EQ. YESUP .OR. YN .EQ. YESLO) THEN
+            IDCLR = CLRMOD(IDPTR)+1
+            CALL SETPRN(PRINTR(IDCLR,IDPTR))
+            CALL SETPRA(2,PTRVAL(2,IDPTR))
+            CALL SETPRA(7,PTRVAL(7,IDPTR))
+            CALL SETPRA(22,PTRVAL(22,IDPTR))
+            GO TO 900
+         ELSE
+            GO TO 100
+         ENDIF
+      ENDIF
+      NUMER = 0
+      NLIN  = 5
+C
+C-----  EXAMINE EACH OF THE PRINTER OPTIONS ENTERED BY THE USER
+C
+C-----      NBR OF COPIES, 1=1 COPY(DEF), N>1= NBR COPIES
+C
+      IF (PTRSUP(8) .GT. 0) THEN
+         IVAL = ICHAR(FIELD(6)(1:1)) - 48
+         COPIES = MIN0(IVAL,PTRSUP(8))
+      ELSE
+         IF (FIELD(6) .NE. '1 ') THEN
+C             .. ERROR:  HALO DOES NOT SUPPORT THIS OPTION FOR THIS PRINTER
+            NUMER = NUMER+1
+            IF (NUMER.LT.4) THEN
+               FIELD(6) = '1 '
+               NLIN = NLIN-1        
+               CALL WRTMSG(NLIN,471,14,0,0,' ',0)
+            ENDIF   
+         ENDIF
+      ENDIF
+C
+C-----      FORM FEED -- 1=YES(DEF), 2=NO
+C
+      IF (PTRSUP(5) .EQ. 1) THEN
+         IF (FIELD(7) .EQ. '2 ') THEN
+            FORMFD = 1
+         ELSE
+            FORMFD = 0
+         ENDIF
+      ELSE
+         IF (FIELD(7) .NE. '9 ') THEN
+C           ERROR MSG--HALO DOES NOT SUPPORT THIS OPTION FOR THIS PRINTER
+            NUMER = NUMER+1
+            IF (NUMER.LT.4) THEN
+               FIELD(7) = '9 '
+               NLIN = NLIN-1        
+               CALL WRTMSG(NLIN,472,14,0,0,' ',0)
+            ENDIF   
+         ENDIF
+      ENDIF
+C
+C-----      DITHERING -- 1=YES, 2=NO(DEF)
+C
+      IF (PTRSUP(19) .GT. 0) THEN
+         IF (FIELD(8) .EQ. '2 ') THEN
+            DITHER = 0
+         ELSE
+            DITHER = -1
+         ENDIF
+      ELSE
+         IF (FIELD(8) .NE. '9 ') THEN
+C           ERROR MSG--HALO DOES NOT SUPPORT THIS OPTION FOR THIS PRINTER
+            NUMER = NUMER + 1
+            IF (NUMER.LT.4) THEN
+               FIELD(8) = '9 '
+               NLIN = NLIN-1        
+               CALL WRTMSG(NLIN,469,14,0,0,' ',0)
+            ENDIF   
+         ENDIF
+      ENDIF
+C
+C-----      CENTERING -- 1=YES(DEF), 2=NO
+C
+      IF (PTRSUP(9) .EQ. 1) THEN
+         IF (FIELD(9) .EQ. '2 ') THEN
+            CENTER = 1
+         ELSE
+            CENTER = 0
+         ENDIF
+      ELSE
+         IF (FIELD(9) .NE. '9 ') THEN
+C           ERROR MSG--HALO DOES NOT SUPPORT THIS OPTION FOR THIS PRINTER
+            NUMER = NUMER+1
+            IF (NUMER.LT.4) THEN
+               FIELD(9) = '9 '
+               NLIN = NLIN-1        
+               CALL WRTMSG(NLIN,473,14,0,0,' ',0)
+            ENDIF   
+         ENDIF
+      ENDIF
+C
+C-----  ENTER NUMBER OF INCHES (OR CM) TO INDENT FROM LEFT OF PAGE
+C
+      IF (PTRSUP(10) .EQ. 1) THEN
+         READ (FIELD(11),520) LOFSET
+         VAL = LOFSET / USCALE
+         XOFSET = XDPI * VAL
+      ELSE
+         IF (FIELD(11) .NE. '99.9') THEN
+C           ERROR MSG--HALO DOES NOT SUPPORT THIS OPTION FOR THIS PRINTER
+            NUMER = NUMER + 1
+            IF (NUMER.LT.4) THEN
+               FIELD(11) = '99.9'
+               NLIN = NLIN-1        
+               CALL WRTMSG(NLIN,474,14,0,0,' ',0)
+            ENDIF   
+         ENDIF
+      ENDIF
+C
+C-----  ENTER NUMBER OF INCHES (OR CM) TO INDENT FROM TOP OF PAGE
+C
+      IF (PTRSUP(11) .EQ. 1) THEN
+         READ (FIELD(12),520) LTOPST
+         VAL = LTOPST / USCALE
+         YOFSET = YDPI * VAL
+      ELSE
+         IF (FIELD(12) .NE. '99.9') THEN
+C           ERROR MSG--HALO DOES NOT SUPPORT THIS OPTION FOR THIS PRINTER
+            NUMER = NUMER + 1
+            IF (NUMER.LT.4) THEN
+               FIELD(12) = '99.9'
+               NLIN = NLIN-1        
+               CALL WRTMSG(NLIN,475,14,0,0,' ',0)
+            ENDIF   
+         ENDIF
+      ENDIF
+C
+C-----  ENTER HORIZONTAL SIZE (WIDTH) OF THE PLOT IN INCHES (OR CM)
+C
+      IF (PTRSUP(0) .EQ. 1) THEN
+         READ (FIELD(10),520) VAL
+         VAL = VAL / USCALE
+         WIDTH = XDPI * VAL
+         PLOTWID = VAL
+C
+C---  CALCULATE THE VERTICAL SIZE BASED ON THE HORIZONTAL SIZE AND ASPECT RATIO
+C
+         PASP = YDPI / XDPI
+         HGT  = FLOAT(WIDTH) * PASP
+      ELSE
+         WIDTH = MAXX
+         PASP  = YDPI / XDPI
+         HGT   = FLOAT(WIDTH) * PASP
+C        ERROR MSG--HALO DOES NOT SUPPORT THIS OPTION FOR THIS PRINTER
+         NUMER = NUMER + 1
+         IF (NUMER.LT.4)THEN
+            NLIN = NLIN-1        
+            CALL WRTMSG(NLIN,476,14,0,0,' ',0)
+         ENDIF   
+      ENDIF
+  400 CONTINUE
+C
+C---- VERIFY THAT WIDTH OF PLOT, OFFSETS, & PAGE SIZES ARE CONSISTENT
+C---- WHEN CENTERING IS OFF.  NO OFFSETS ALLOWED WHEN CENTERING IS ON
+C
+      IF ((XOFSET+WIDTH) .GT. MAXX) THEN
+         NUMER = NUMER + 1
+         IF (NUMER.LT.4) THEN
+            NLIN = NLIN-1        
+            CALL WRTMSG(NLIN,479,14,0,0,' ',0)
+         ENDIF   
+      ENDIF
+      IF (CENTER .EQ. -1) THEN
+         IF (XOFSET .GT. 0 .OR. YOFSET .GT. 0) THEN
+            NUMER = NUMER + 1
+            IF (NUMER.LT.4) THEN
+               NLIN = NLIN-1        
+               CALL WRTMSG(NLIN,478,14,0,0,' ',0)
+            ENDIF   
+         ENDIF
+      ENDIF            
+C
+C---- DISPLAY ANY ERROR MESSAGES. ASK USER TO REVISE SELECTIONS IF ERRORS
+C
+      IF (NUMER .GT. 0) THEN
+         NLIN = NLIN-1        
+         IF (NUMER .GT. 3) THEN
+            CALL WRTMSG(NLIN,481,14,1,1,' ',0)
+         ELSE
+            CALL WRTMSG(NLIN,202,14,1,0,' ',0)
+            CALL GETCHAR(0,INCHAR)
+         ENDIF
+         GO TO 100
+      ELSE
+C
+C----- TRANSFER PRINTER OPTIONS FROM TEMP TO PERMANENT VARIABLES.  ADJUST
+C----- WIDTH OF PLOT IF OFFSET + WIDTH EXCEEDS MAX X DUE TO CM-IN CONVERSION
+C
+         IF (INCHAR .EQ. '2F') THEN
+            PTRVAL(0,IDPTR)  = WIDTH
+            PTRVAL(1,IDPTR)  = HGT
+            PTRVAL(5,IDPTR)  = FORMFD
+            PTRVAL(8,IDPTR)  = COPIES
+            PTRVAL(9,IDPTR)  = CENTER
+            PTRVAL(10,IDPTR) = XOFSET
+            PTRVAL(11,IDPTR) = YOFSET
+            PTRVAL(17,IDPTR) = RESOL
+            PTRVAL(19,IDPTR) = DITHER
+            PTRASP(IDPTR)    = PASP
+            IDCLR = CLRMOD(IDPTR)+1
+            CALL SETACTPR(PRINTR(IDCLR,IDPTR),PTRVAL(0,IDPTR),
+     +                    PTRASP(IDPTR) ,IER)
+            IF (IER.NE.0) GO TO 900
+            GO TO 200
+         ELSE
+            GO TO 100
+         ENDIF      
+      ENDIF   
+  200 CONTINUE
+      RTNCODE = '0'
+C **DEBUG
+        WRITE(999,*)'NORMAL END TO OPTFB'
+      RETURN      
+C         
+  900 CONTINUE
+C **DEBUG
+        WRITE(999,*)'ERROR END TO OPTFB'
+      RTNCODE = '1'
+      RETURN      
+C
+C       ** FORMAT STMTS                 
+C
+  520 FORMAT(F4.1)
+  530 FORMAT(I1)
+C  151 FORMAT(F4.0)
+C
+      END
+      
+

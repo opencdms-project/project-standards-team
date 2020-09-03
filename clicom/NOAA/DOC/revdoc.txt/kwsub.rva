@@ -1,0 +1,328 @@
+CODE REVISIONS AFTER THE RELEASE OF CLICOM 3.0 (July 1992) 
+(Actual date diskettes were mailed: 9-2-92)
+
+File name:     KWSUB.RVA
+Revision nbr:  1   11-13-92
+               2   08-02-93  
+               3   12-13-93
+               4   12-14-93
+
+******************************************************************************
+******************************************************************************
+
+File:           CNTR2.FOR
+Revision nbr:   1  
+Revision date:  11-13-92
+Release date:   11-25-92
+Problems:       1 -- For very sparse data sets, it is possible that the
+                     variable MMAX can be larger than the number of columns
+                     in the array TUX.  This possibility is checked when the
+                     array is filled but not when it was zeroed.  This problem
+                     occurs in routine KCUTGD which is used for clipping the
+                     contour lines.
+_______________________________________________________________________________
+
+      SUBROUTINE KCUTGD(XXOUT,K,L,MMAX,NUMFIL)
+C      
+      COMMON /KWCHOP/ M,TUX(4,300)
+      NCOLTUX = 300                ------------------>> ADD LINE
+c
+
+C ** REVISION ** (JML 11-12-92)
+C    CHECK THAT MMAX DOES NOT INDEX PAST ARRAY BOUNDS 
+C
+      MXCOL = MIN0(NCOLTUX,MMAX)   ------------------>> ADD LINE
+      DO 5 NN = 1,MXCOL            ------------------>> CHANGE MMAX TO MXCOL
+      DO 5 III = 1,4
+    5 TUX(III,NN) = 0.
+
+******************************************************************************
+******************************************************************************
+
+File:           CONMAP.FOR, KWWEVR.FOR, PCTRL2.FOR
+Revision nbr:   2  
+Revision date:  08-02-93
+Release date:   
+Problems:       1 -- Array dimensions are calculated in RETLIM and passed to
+                     KWWEVR.  The dimensions are based on the ratio of the 
+                     lat and lon distances.  The minimum dimension accepted
+                     by KWWEVR is 11.  For lat/lon areas that are very narrow 
+                     in one direction, it is possible for the calculated
+                     dimension to be less than 11.  No check was make in RETLIM
+                     and no error message was returned from KWWEVR.  The only
+                     indication of a problem was the fact that no contours
+                     were drawn.
+                     An error message was added to CONMAP to report any error
+                     returned from KWWEVR.  Checks were added to RETLIM to
+                     prevent a dimension from being less than 11.
+                     
+                2 -- The arrays containing Station Id (CVAL) and the values to
+                     be contoured (RVAL) were passed to CONMAP starting at
+                     position one.  This is correct only if the low row index
+                     was set to start at row 1 of the array.  The arrays passed
+                     should start at the low row index (LORFRM).
+Solution:       The solution for KWWEVR.FOR is shown below.  The solutions for
+                CONMAP.FOR and PCTRL2.FOR are in file MAPCON.RVA.
+                
+_______________________________________________________________________________
+
+      SUBROUTINE KWWEVR (T1,W1,ICUT,IXSZ,IYSZ,NUMM,IFLG,IXCUT,IYCUT,IER)
+C ** REVISION ** (JML 07-30-93)                                      |
+C    ADD IER TO ARGUMENTS; DECLARE IER I*2             ADD IER <<----|
+       INTEGER*1 ICUT                                              
+       INTEGER*2 IXSZ,IYSZ,NUMM,IFLG,IXCUT,IYCUT,ICTFLG,IER    ----->> ADD IER
+.
+.
+         CALL KWCUTCN(ICUT,W1,IXSZ,IYSZ,NUMM,IXC,IYC)
+         ENDIF
+C
+C ** REVISION ** (JML 07-30-93) SET IER TO ICHECK
+        IER = ICHECK                 --------------------->> ADD LINE
+        RETURN
+        END
+
+******************************************************************************
+******************************************************************************
+
+File:           CNTR2.FOR, KSETUP.FOR, KWOPLAND, KWOPSCR, KWLABL.J30
+Revision nbr:   3  
+Revision date:  12-13-93
+Release date:   
+Problems:       1 -- Comments added to routine KCUTGD in CNTR2.FOR.  Original
+                     source file has the date 11-16-92 12:33.
+                2 -- Comments added to routine KSETUP in file KSETUP.FOR.  All
+                     new comments begin with 'REVISION JML 4-28-92'.  Original
+                     source file has the date 04-28-92 12:35
+                3 -- Comments added to the start of file KWOPLAND.FOR.  
+                     Original source file has the date 01-14-91 04:21
+                4 -- Comments added to the start of file KWOPSCR.FOR.  
+                     Original source file has the date 01-14-91 04:22
+                5 -- Comments added to the start of file KWLABL.J30.  
+                     Original source file has the dates 7-31-92 and 8-03-92
+                     
+******************************************************************************
+C
+      SUBROUTINE KCUTGD(XXOUT,K,L,MMAX,NUMFIL)
+.
+.      
+C      
+C ** REVISION ** (JML 11-12-92)
+C    ADD NCOLTUX -- USED TO CHECK THAT MMAX DOES NOT INDEX PAST ARRAY BOUNDS 
+      COMMON /KWCHOP/ M,TUX(4,300)
+      NCOLTUX = 300
+.
+.      
+C
+C ** REVISION ** (JML 11-12-92)
+C    ADD MXCOL -- USED TO CHECK THAT MMAX DOES NOT INDEX PAST ARRAY BOUNDS 
+C
+      MXCOL = MIN0(NCOLTUX,MMAX)
+      DO 5 NN = 1,MXCOL
+      DO 5 III = 1,4
+    5 TUX(III,NN) = 0.
+_______________________________________________________________________________
+
+C       ** REVISION JML -- 4-28-92
+C          ADD INTEGER*2 DEFAULT; DELETE XCENT,YCENT FROM KSETUP CALL;
+C          REMOVE DECLARATION OF IBORD, ICLOR;  SPECIFY I*2 FOR KWXSCN,KWYSCN;
+C
+$STORAGE:2  
+      SUBROUTINE KSETUP(MAPRJ,PLTWLF,PLTWRT,PLTWBT,PLTWTP,
+     +           XPLTSZ,YPLTSZ,XPLTCEN,YPLTCEN,XKWMX,YKWMX)
+      INTEGER*2          KWXSCN,KWYSCN
+.
+.    
+C     ********  determine view-port area from plot-area ******
+c
+c     ** inquire viewport parms and fill area **
+c
+C       ** REVISION JML -- 4-28-92
+C          CORRECT ORDER OF TOP AND BOTTOM IN CALL TO INQUIRE VIEWPORT;
+C          REMOVE SETTING OF VIEWPORT        
+      CALL INQVIEWPORT(VEWWLF,VEWWTP,VEWWRT,VEWWBT)
+C      CALL INQVIEWPORT(VEWWLF,VEWWBT,VEWWRT,VEWWTP)
+C      IBORD = 0
+C      ICLOR = 6
+C      CALL SETVIEWPORT(VEWWLF,VEWWBT,VEWWRT,VEWWTP,IBORD,ICLOR)
+C
+C     ** inquire device coordinates and scale to inches **
+c
+      call inqdra(kwxscn,kwyscn)
+C       ** REVISION JML -- 4-28-92      
+C          ADD ASPECT RATIO TO CALCULATION OF YSIZE      
+      CALL INQASP(ASP)
+      XSIZE  = KWXSCN / 100.
+      YSIZE  = (FLOAT(KWYSCN)/ASP) / 100.
+C
+c     ** scale area to view port percentages / set new world coordinates***
+c
+      XKWLF = (VEWWLF * XSIZE)
+      YKWBT = (VEWWBT * YSIZE)
+      XKWRT = (VEWWRT * XSIZE)
+      YKWTP = (VEWWTP * YSIZE)
+      XKWMX = XKWRT - XKWLF
+C       ** REVISION JML -- 4-28-92
+C          CORRECT SUBTRACTION ORDER OF BOTTOM/TOP      
+      YKWMX = YKWBT - YKWTP
+      CALL SETWOR(0.0,0.0,XKWMX,YKWMX)
+C
+C     ** scale page area by user defined percentages and center point  **
+C
+      XPLTSZ  = XKWMX * (PLTWRT - PLTWLF)
+      YPLTSZ  = YKWMX * (PLTWTP - PLTWBT)
+C       ** REVISION JML -- 4-28-92
+C          REMOVE CALCULATION OF XPLTCEN,YPLTCEN, XCENT,YCENT       
+C      XPLTCEN = XKWMX / 2.0
+C      YPLTCEN = YKWMX / 2.0
+C
+c     *** X/Y PROJECTION ... Position map to the user plot area limits
+c
+C       ** REVISION JML -- 4-28-92
+C          REMOVE MAP PROJECTION CONDITION FOR CALCULATION OF XPLTCEN,YPLTCEN;
+C         REMOVE CALCULATION OF XCENT,YCENT       
+C      IF (MAPPRJ.EQ.25) THEN
+         XPLTCEN = (XPLTSZ/2.0) + (XKWMX*PLTWLF) 
+         YPLTCEN = (YPLTSZ/2.0) + (YKWMX*PLTWBT)
+C      ENDIF
+C
+      RETURN
+      END
+_______________________________________________________________________________
+
+C       ** REVISION JML -- 1-14-91
+C          CHANGE P: TO O: IN FILE REFERENCES
+C   
+C   ****  SUBROUTINE KWOPLND IS USED TO OPEN THE WDB2 LAND POINTER FILE ***
+C                    
+C
+C
+        SUBROUTINE KWOPLND(ICODE,IFLG)
+        INTEGER*2  ICODE,IFLG
+C
+C       ****  WDB2 COAST FILE ****
+        IF (ICODE.EQ.1)
+     +  OPEN (12,FILE='O:\MAP\COAST.FLE',ERR=888,STATUS='OLD')
+_______________________________________________________________________________
+
+C       ** REVISION JML -- 1-14-91
+C          CHANGE P: TO O: IN FILE REFERENCES
+C
+C       *** SUBROUTINE TO CHECK ON SCRATCH FILE FOR INTERPOLATION ****
+C
+        SUBROUTINE KWOPSCR(NUMFIL,IFLAG)
+        INTEGER*2  IFLAG,NUMFIL
+C
+        open (NUMFIL,file='O:\MAP\scratch.wrk',access='direct',
+     +  ERR=998,form='unformatted',recl=4)
+
+_______________________________________________________________________________
+
+C       ** NOTE (12-13-93 JML):  THIS VERSION OF CODE WAS SHIPPED WITH BOTH
+C          THE JULY 1992 AND NOVEMBER 1992 RELEASES OF CLICOM 3.0.  THIS FILE
+C          WAS PRODUCED BY MODIFYING THE CODE FROM 11-25-91.  THE ONLY 
+C          MODIFICATIONS MADE WERE TO DELETE UNUSED VARIABLES.  THIS CODE IS
+C          INCORRECT.  THE CODE FROM 3-29-92 10:39a WAS THE LATEST VERSION 
+C          AND SHOULD HAVE BEEN USED.  THE MAJOR DIFFERENCE IN THE TWO SETS OF
+C          CODE IS THAT THE CLIPPING FLAG IS NOT IN THE OLD CODE SO TURNING THE
+C          CLIPPING FLAG ON/OFF IN CONCTRL.PRM HAS NO EFFECT.  THIS CODE IS THE
+C          SAME (EXCEPT FOR COMMENTS AT THE BEGINNING) THE FILES DATED 7-31-92
+C          AND 8-03-92.
+C
+      SUBROUTINE KWLABL(XX,YY,PVAL2,ICQ2)
+
+******************************************************************************
+
+File:           KWLABL.FOR, KWLAND.FOR
+Revision nbr:   4  
+Revision date:  12-14-93
+Release date:   
+Problems:       1 -- Old version of file KWLABL was released in CLICOM 3.0
+                     File used had the date 11-25-91.
+                2 -- Remove unused variables from routine KWCLIP in KWLABL.
+                3 -- XOLD/YOLD in KWCLIP store the current graphics cursor 
+                     position.  These values are initially set to 0 in a data 
+                     statement, but are never reset.  If the cursor is moved 
+                     outside KWCLIP, KWCLIP will think it is in an incorrect
+                     location.
+Solutions:      1 -- Start with file KWLABL.SV3 (3-29-92 10:39).
+                2 -- Put variables XOLD,YOLD from KWCLIP in common KWCLIPXY.
+                3 -- Add new routine BGKWCLIP which initials XOLD,YOLD to
+                     current cursor position.  Routine is called from KWLAND.
+_______________________________________________________________________________
+                
+      SUBROUTINE KWLABL(XX,YY,PVAL2,ICQ2)
+.
+.      
+       SUBROUTINE KWSTRE(X,Y,IP)
+c       character*1 abug           ------>> change a to abug; comment line
+.
+.
+       SUBROUTINE KWBOX (XTRAN,YTRAN,CHRHGT,NCHAR,ICNT,ANG,IFLG)
+c       character*1 abug          ------>> change a to abug; comment line
+.
+.
+      SUBROUTINE BUFCOV (X,Y,IP)    --------> remove lines with X1,Y1,STATUS
+      COMMON /PLOTRN/   XSCNPG,YSCNPG,XPLTPG,YPLTPG,SCNFLP
+      DATA XOLD,YOLD    /0.0,0.0/
+.
+.      
+      SUBROUTINE KWCLIP (x1,y1,x2,y2)
+      common /outer/ dx,dy
+C       .. COMMON ALLOWS ROUTINE BGKWCLIP TO INITIAL XOLD,YOLD TO
+C          CURRENT GRAPHICS CURSOR POSITION.  CURRENTLY BGKWCLIP IS ONLY
+C          CALLED FROM KWLAND WHEN A MAP IS DRAWN.
+      COMMON /KWCLIPXY/ XOLD,YOLD   ----->> add line and comments
+      DATA XOLD,YOLD /0.0,0.0/
+.
+.      
+       SUBROUTINE  KWFIELD
+     + (T,W,ICUT,IXSIZ,IYSIZ,XMNLN,YMNLT,XMXLN,YMXLT)
+       INTEGER*2 IXSIZ,IYSIZ
+       INTEGER*1   ICUT(IXSIZ,IYSIZ)
+       DIMENSION   T(IXSIZ,IYSIZ),W(IXSIZ,IYSIZ)
+       CHARACTER*256 STRING
+       INTEGER*2 ICNTR,NCHR2,FONTCK   ------>> delete variables ICOLOR, IC
+.
+.
+       SUBROUTINE  KWTXTNM (X1,Y1,VAL,IDECPL)
+       CHARACTER*256 STRING
+       INTEGER*2 ICNTR,NCHR2,FONTCK    ------>> delete variables ICOLOR, IC
+_______________________________________________________________________________
+
+       SUBROUTINE KWLAND (XMIN,YMIN,XMAX,YMAX,ICODE,IFLAG)
+       INTEGER*2         ICODE,IFLAG
+       CHARACTER*72      FILE1,FILE2
+       COMMON /KWCM  /   CETLON
+       COMMON /KDSTCK/   IJMP,PLTDST
+       COMMON /KWCLIPXY/ XOLD,YOLD    --------->> add common
+C
+         IJMP = 1
+         pltdst = 0.9
+C         
+C          ** INITIAL XOLD,YOLD IN KWCLIP TO THE CURRENT GRAPHICS CURSOR 
+C             POSITION
+         CALL BGKWCLIP   ----------->> add line plus comments
+.
+.         
+      SUBROUTINE BGKWCLIP    --------->> add routine
+C
+C       ** THIS ROUTINE DETERMINES THE CURRENT GRAPHICS CURSOR LOCATION AND
+C          USES THE POSITION TO INITIAL THE VALUE OF XOLD/YOLD IN KWCLIP.
+C          CURRENTLY THIS ROUTINE IS CALLED ONLY FROM KWLAND.  PREVIOUSLY
+C          KWCLIP ALWAYS RETAINED THE LAST CURSOR POSITION THAT IT DEFINED
+C          AS THE CURRENT CURSOR POSTION.  HOWEVER, ONCE KWLAND IS EXITED
+C          IT IS POSSIBLE THAT A ROUTINE OTHER THAN KWCLIP CAN CHANGE THE
+C          GRAPHICS CURSOR POSITION.  THIS ROUTINE MAKES SURE THAT KWCLIP
+C          HAS THE CURRENT POSITION OF THE GRAPHICS CURSOR BEFORE THE MAP
+C          LINE SEGEMNTS ARE STARTED.
+C
+      COMMON /KWCLIPXY/  XOLD,YOLD
+      COMMON /PLOTRN/   XSCNPG,YSCNPG,XPLTPG,YPLTPG,SCNFLP
+C
+      CALL INQGCUR(XS,YS,ICOLOR)
+      XOLD = XS - XSCNPG
+      YOLD = YS - YSCNPG
+      RETURN
+      END
+_______________________________________________________________________________
+

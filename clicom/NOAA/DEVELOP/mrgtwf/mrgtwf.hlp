@@ -1,0 +1,84 @@
+          Help for Merge Key-Entry Files
+
+     This program enables you to perform the following
+tasks:
+
+  1. Merge two key-entry files
+     This choice allows you to merge one key-entry file
+     into a key-entry file which already exists in CLICOM
+     data directory.
+
+  2. List key-entry record ID's
+     This choice allows you to display the record ID's
+     for data saved in a key-entry file.
+
+  3. View a key-entry form
+     This choice allows you to view all element codes that
+     define in a key-entry form.
+
+  4. List current key-entry forms
+     This choice allows you to list all datatype and dataset
+     ID number of the key-entry forms that are defined in
+     the CLICOM data directory.
+
+     The following steps explain some of the requirements
+and procedures for file merger:
+
+  A. The program allows you to merge one key-entry file
+     into a key-entry file that already exists in the
+     CLICOM data directory.  Before the program starts to
+     merge, it will save the target key-entry files, 
+     ddd###.TWF and ddd###.IDX, in P:\CLICOM\DATA directory
+     under file names, ddd###.MTF and ddd###.MTX.  
+
+     Both the source and target key-entry files must have
+     the same format.  The number of elements and the
+     element codes in both key-entry files must be identical
+     and in the same order.
+
+  B. The program merges an entire key-entry file.  It does
+     not allow you to select a range of stations or dates.
+
+  C. The source key-entry files must be in the same
+     directory.  The following files are required:
+
+         - SETUP.DAT  (Contains key-entry form definition)
+         - ddd###.TWF (Temporary Work File)
+         - ddd###.IDX (InDeX file)
+
+     Where ddd is the data type abbreviation and ### is the
+     dataset ID number.
+
+  D. To specify the location of the source key-entry files,
+     enter only the drive letter and the path where the
+     source files are located.  You do not need to enter
+     the file name.
+
+  E. If a record ID in the source key-entry file has the 
+     same Station-ID and date as in the target key-entry
+     file (the key-entry file in CLICOM), the process stops
+     and asks you to select an action:
+
+     - Overwrite: The program will overwrite the existing
+                  record ID in the target key-entry file.
+
+     - Skip     : The program skips this source record ID
+                  and continues the process.
+
+     - Stop     : The process stops the entire merge process
+                  at the point where it found a record ID in
+                  the source key-entry file that was the
+                  same as in the target key-entry file.
+
+     NOTE:  The program has merged a partial of the source
+            key-entry file.  If you want to recover the 
+            original target key-entry file, you must exit 
+            the program and issue the DOS command:
+
+                 COPY P:\DATA\ddd###.MTF  P:\DATA\*.TWF
+                 COPY P:\DATA\ddd###.MTX  P:\DATA\*.IDX
+
+
+
+This is the help file MRGTWF.HLP, and is called from
+program MRGTWF.EXE

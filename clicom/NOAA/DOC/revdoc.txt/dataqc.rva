@@ -1,0 +1,299 @@
+CODE REVISIONS AFTER THE RELEASE OF CLICOM 3.0 (July 1992) 
+(Actual date diskettes were mailed: 9-2-92)
+
+File name:     DATAQC.RVA
+Revision nbr:  1   08-31-93
+
+******************************************************************************
+******************************************************************************
+
+File:           EDIT.FOR, CHKKEY.FOR, RAOBQC.FOR, CKINTGR.FOR
+Revision nbr:   1  
+Revision date:  08-31-93
+Release date:   
+Problems:       1 -- If the form was cleared when there were generated values
+                     and then new data was entered, the old generated values
+                     were displayed before any data was entered on the line.
+                     When the F5 key was entered the character array (VALARRAY)
+                     used to hold the data was cleared, but the local real
+                     arrays in RAOBQC still contained old data.  The solution
+                     was to set the NEWREC flag so the arrays in RAOBQC were
+                     regenerated.
+                2 -- No check was made in RAOBQC to see if generated values
+                     were too big/small to fit the I5 format of the character
+                     array.
+                3 -- No check was made to determine if both pressure and height
+                     were missing.  Code for a previous attempt to do this was
+                     commented out.  It did not work because the check was
+                     based on the element value which is not available to 
+                     RAOBQC.  The check should be made on lines > 1.  The
+                     element value is not that important since RAOBQC is called
+                     only when values have changed or if the first time a line
+                     is entered at the end of the line.  It will not be flagged
+                     if pressure is skipped before height is entered.  No check
+                     is necessary on line 1 since another check makes sure a
+                     value is entered for pressure, height, and TEMPDB.
+                4 -- No message is printed if a blank line is entered.  This
+                     would be a major fix since RAOBQC is not called in this
+                     case.  The manual states that results are unpredictable
+                     if blank lines are entered.   NO FIX!
+                5 --
+               THIS ROUTINE NEEDS TO BE RECHECKED.  WHEN EACH VARIABLE IS
+               CALCULATED ARE ALL THE OTHER REQUIRED VARIABLES CHECKED?  IS THE
+               CURRENT VARIABLE NOT CALCULATED OR SET TO MISSING? WHICH OF THE 
+               TWO OPTIONS IS BEST UNDER DIFFERENT CIRCUMSTANCES?
+          
+_______________________________________________________________________________
+      SUBROUTINE EDIT (ITYPE,RECTYPE,IDKEY,IELEM,ILINE,OLDDDS)
+.
+.
+.      
+C
+C  RTNCODE = '7'  =  REWRITE THE SCREEN
+C
+      ELSE  IF (RTNCODE.EQ.'7')THEN
+C ADDED NEXT LINE 12-4-91 TO HANDLE INSERTING A LINE      
+         NEWREC='1'
+         GO TO 90
+C                                                                    -----
+C **REVISION 8-30-93                                                   |
+C  RTNCODE = '8' USER HAS ENTERED F5 TO CLEAR THE FORM FOR U-A;        |
+C                FLAG IS SET SO ALL ARRAYS IN RAOBQC ARE CLEARED.      |
+C                                                                      |
+      ELSE IF (RTNCODE.EQ.'8') THEN                                 ADD LINES
+         NEWREC='1'                                                    |
+         GO TO 100                                                   ----- 
+C
+C  RTNCODE = '9'  USER HAS ENTERED F2 TO SAVE THE FORM
+_______________________________________________________________________________
+       SUBROUTINE CHKKEY(RTNFLAG,IELEM,ILINE,RECTYPE,LINQCD,POSFLD,
+     +                   STRTELEM,STRTLINE,NUMLN2,HOURLBL,RTNCODE)
+.
+.
+.     
+C
+C  'F5' = CLEAR THIS FRAME OF DATA FROM THE SCREEN AND FROM MEMORY
+C
+      ELSE IF (RTNFLAG.EQ.'5F') THEN
+            FGCOLOR = 12
+            CALL WRTMSG(3,201,FGCOLOR,BEEPON,0,' ',0)
+            CALL LOCATE(23,1,IERR)
+            CALL OKREPLY(REPLY,RTNCODE)
+            IF (REPLY.EQ.'Y'.AND.RTNCODE.EQ.'0') THEN
+                CALL CLRMSG(4)
+                CALL CLRMSG(3)
+                CALL CLRMSG(2)
+                GO TO 125
+            ELSE
+               CALL CLRMSG(4)
+               CALL CLRMSG(3)
+               CALL CLRMSG(2)
+               RETURN
+            END IF
+C          ** REVISION 8-30-93 ADD RTNCODE=8 IF UPPER AIR FORM IS CLEARED
+  125    CONTINUE                                <-------- ADD LINE  
+         IF (RECTYPE.EQ.'U-A') RTNCODE='8'       <-------- ADD LINE  
+         DO 130 J= 1,NUMLN2                      <-------- REMOVE LABEL 125
+            LINQCD(J) = 'N'
+            DO 130 I=1,NUMELEM
+               IF (PASSWD.EQ.'QC'.OR.FLAGARRAY(I,J,1).LT.'a')THEN
+                  VALARRAY(I,J) = BLANK
+                  FLAGARRAY(I,J,1) = BLANK
+                  FLAGARRAY(I,J,2) = BLANK
+               END IF
+  130    CONTINUE 
+
+_______________________________________________________________________________
+      SUBROUTINE RAOBQC(ILINE,FLAGHOLD,NEWREC)
+.
+.
+.
+C **REVISION 8-30-93  PUT CHECK FOR PRESSURE AND HEIGHT BACK IN;  TEST FOR
+C                     ILINE NOT IELEM; IELEM IS NOT KNOWN
+C
+C          ** A PRESSURE OR HEIGHT MUST EXIST AT THE CURRENT LEVEL  (9-24-91)
+C
+      IF (VALARRAY(1,ILINE)(1:5).EQ.BLANK .AND.   <------ UNCOMMENT
+     +    VALARRAY(2,ILINE)(1:5).EQ.BLANK) THEN   <------ UNCOMMENT
+         IF (ILINE.GT.1) THEN                     <------ CHANGE IELEM TO ILINE
+            FLAGHOLD(1,5,1) = 'C'                 <------ UNCOMMENT
+            FLAGHOLD(1,5,2) = 'd'                 <------ UNCOMMENT
+            FLAGHOLD(2,5,1) = 'C'                 <------ UNCOMMENT
+            FLAGHOLD(2,5,2) = 'd'                 <------ UNCOMMENT
+            RETURN                                <------ MOVE INSIDE IF
+         ENDIF                                    <------ UNCOMMENT
+      END IF                                      <------ UNCOMMENT 
+C **DEBUG  ADD QC BACK TO KE
+C      IF (PASSWD.NE.'QC') RETURN      
+C **END DEBUG
+.
+.
+************************************************************************
+*     WRITE THE VALUES AND FLAGS BACK TO THE INPUT ARRAY               *
+************************************************************************
+ 3000 CONTINUE
+
+C ** REVISION 8-31-93  ADD CHECK FOR VALUES TOO LARGE FOR ARRAY -- CKINTGR
+      IE=1                                               <<------ ADD LINE
+      IF (WIND(ILINE).AND.PRESSURE(ILINE).LT.1)THEN
+         VALARRAY(1,ILINE) = '     W'
+      ELSE IF (PRESSURE(ILINE) .EQ. MISSING) THEN
+         VALARRAY(1,ILINE)=BLANK
+      ELSE
+C         INTVAL = NINT(PRESSURE(ILINE)*10.)
+         CALL IROUND4(PRESSURE(ILINE)/TBLCONV(1),INTVAL)
+         CALL CKINTGR(INTVAL,IER)                         <<------ ADD LINE
+         IF (IER.EQ.1) GO TO 900
+         WRITE(VALARRAY(1,ILINE),3010) INTVAL,DATAFLAG(1,ILINE)
+3010  FORMAT(I5,A1)
+      END IF
+C     
+      IE=2                                                <<------ ADD LINE
+      IF(HEIGHT(ILINE) .EQ. MISSING) THEN
+         VALARRAY(2,ILINE)=BLANK
+      ELSE
+C         INTVAL = NINT(HEIGHT(ILINE))
+         CALL IROUND4(HEIGHT(ILINE)/TBLCONV(2),INTVAL)
+         CALL CKINTGR(INTVAL,IER)                         <<------ ADD LINE
+         IF (IER.EQ.1) GO TO 900
+         WRITE(VALARRAY(2,ILINE),3010) INTVAL,DATAFLAG(2,ILINE)
+      END IF
+C
+      IE=3                                                <<------ ADD LINE
+      IF(TEMP(ILINE) .EQ. MISSING) THEN
+         VALARRAY(3,ILINE)=BLANK
+      ELSE
+C         INTVAL = NINT(TEMP(ILINE)*10.)
+         CALL IROUND4(TEMP(ILINE)/TBLCONV(3),INTVAL)
+         CALL CKINTGR(INTVAL,IER)                         <<------ ADD LINE
+         IF (IER.EQ.1) GO TO 900
+         WRITE(VALARRAY(3,ILINE),3010) INTVAL,DATAFLAG(3,ILINE)
+      END IF
+C 
+      IE=4                                                <<------ ADD LINE
+      IF(DEWPTDEP(ILINE) .EQ. MISSING) THEN
+         VALARRAY(4,ILINE)=BLANK
+      ELSE
+C         INTVAL = NINT(DEWPTDEP(ILINE)*10.)
+         CALL IROUND4(DEWPTDEP(ILINE)/TBLCONV(4),INTVAL)
+         CALL CKINTGR(INTVAL,IER)                         <<------ ADD LINE
+         IF (IER.EQ.1) GO TO 900
+         WRITE(VALARRAY(4,ILINE),3010) INTVAL,DATAFLAG(4,ILINE)
+      END IF
+C
+      IE=5                                                <<------ ADD LINE
+      IF(WINDDIR(ILINE) .EQ. MISSING) THEN
+         VALARRAY(5,ILINE)=BLANK
+      ELSE
+C         INTVAL = NINT(WINDDIR(ILINE))
+         CALL IROUND4(WINDDIR(ILINE)/TBLCONV(5),INTVAL)
+         CALL CKINTGR(INTVAL,IER)                         <<------ ADD LINE
+         IF (IER.EQ.1) GO TO 900
+         WRITE(VALARRAY(5,ILINE),3010) INTVAL,DATAFLAG(5,ILINE)
+      END IF
+C
+      IE=6                                                <<------ ADD LINE
+      IF(WINDSPEED(ILINE) .EQ. MISSING) THEN
+         VALARRAY(6,ILINE)=BLANK
+      ELSE
+C         INTVAL = NINT(WINDSPEED(ILINE))
+         CALL IROUND4(WINDSPEED(ILINE)/TBLCONV(6),INTVAL)
+         CALL CKINTGR(INTVAL,IER)                         <<------ ADD LINE
+         IF (IER.EQ.1) GO TO 900
+         WRITE(VALARRAY(6,ILINE),3010) INTVAL,DATAFLAG(6,ILINE)
+      END IF
+
+      RETURN
+C                                                         <<------ ADD LINE
+C       ** ERROR PROCESSING                               <<------ ADD LINE
+C                                                         <<------ ADD LINE
+  900 CONTINUE                                            <<------ ADD LINE
+      FLAGHOLD(IE,6,1) = 'C'                              <<------ ADD LINE
+      FLAGHOLD(IE,6,2) = ']'                              <<------ ADD LINE
+      RETURN      
+      END
+.
+.      
+      SUBROUTINE FILLTEMP(ILINE,OFFSET)
+.
+.      
+         PRESS2=PRESSURE(ILINE-I)
+         TEMP(ILINE-I)=TEMP1+(DELTAT*((PRESS1-PRESS2)/DELTAP))
+         DATAFLAG(3,ILINE-I)='G'
+C         INTVAL = NINT(TEMP(ILINE-I)*10.)
+         CALL IROUND4(TEMP(ILINE-I)/TBLCONV(3),INTVAL)
+C ** REVISION 8-31-93  ADD CHECK FOR VALUES TOO LARGE FOR ARRAY -- CKINTGR
+         CALL CKINTGR(INTVAL,IER)                         <<------ ADD LINE 
+         WRITE(VALARRAY(3,ILINE-I),'(I5,A1)') INTVAL,DATAFLAG(3,ILINE-I)
+.
+.         
+      DO 4000 I=1,NU
+
+         IF(PRESSURE(ILINE+I).EQ.MISSING.OR.(ILINE+I).GT.MAXLINE) THEN
+C             .. EXIT IF A MISSING PRESSURE FOUND OR LINE COUNT ABOVE MAXIMUM
+            GO TO 4100
+         END IF
+         PRESS2=PRESSURE(ILINE+I)
+         TEMP(ILINE+I)=TEMP1+(DELTAT*((PRESS1-PRESS2)/DELTAP))
+         DATAFLAG(3,ILINE+I)='G'
+C         INTVAL = NINT(TEMP(ILINE+I)*10.)
+         CALL IROUND4(TEMP(ILINE+I)/TBLCONV(3),INTVAL)
+C ** REVISION 8-31-93  ADD CHECK FOR VALUES TOO LARGE FOR ARRAY -- CKINTGR
+         CALL CKINTGR(INTVAL,IER)                         <<------ ADD LINE  
+         WRITE(VALARRAY(3,ILINE+I),'(I5,A1)') INTVAL,DATAFLAG(3,ILINE+I)
+.
+.
+      SUBROUTINE CALCHEIGHT (ILINE,FLAGHOLD,OFFSET)
+.
+.
+            FLAGARRAY(2,ILINE,1)='A'
+            FLAGARRAY(2,ILINE,2)='A'
+C            INTVAL = NINT(HEIGHT(ILINE))
+            CALL IROUND4(HEIGHT(ILINE)/TBLCONV(2),INTVAL)
+C ** REVISION 8-31-93  ADD CHECK FOR VALUES TOO LARGE FOR ARRAY -- CKINTGR
+            CALL CKINTGR(INTVAL,IER)                      <<------ ADD LINE
+            WRITE(VALARRAY(2,ILINE),'(I5,A1)') INTVAL,DATAFLAG(2,ILINE)
+.
+.            
+      SUBROUTINE FILLPRESS(ILINE,IERR)
+.
+.      
+      DO 1500 I=NT,1,-1
+
+         IF((ILINE-I) .LT. 1) THEN
+            GO TO 1600
+         END IF
+         HGT2=HEIGHT(ILINE-I)
+         TEMP(ILINE-I)=VTEMP1+(DELTAT*((HGT2-HGT1)/DELTAH))
+         DATAFLAG(3,ILINE-I)='G'
+C         INTVAL = NINT(TEMP(ILINE-I)*10.)
+         CALL IROUND4(TEMP(ILINE-I)/TBLCONV(3),INTVAL)
+C ** REVISION 8-31-93  ADD CHECK FOR VALUES TOO LARGE FOR ARRAY -- CKINTGR
+         CALL CKINTGR(INTVAL,IER)                         <<------ ADD LINE
+         WRITE(VALARRAY(3,ILINE-I),'(I5,A1)') INTVAL,DATAFLAG(3,ILINE-I)
+.
+.         
+         B = (2*(HGT2-HGT1))/(29.2713*(VTEMP2+VTEMP1))
+         PRESS2 = PRESS1*EXP(-B)
+         PRESSURE(ILINE-I) = PRESS2
+
+C         INTVAL = NINT(PRESSURE(ILINE-I)*10.)
+         CALL IROUND4(PRESSURE(ILINE-I)/TBLCONV(1),INTVAL)
+C ** REVISION 8-31-93  ADD CHECK FOR VALUES TOO LARGE FOR ARRAY -- CKINTGR
+         CALL CKINTGR(INTVAL,IER)                         <<------ ADD LINE
+         WRITE(VALARRAY(1,ILINE-I),'(I5,A1)') INTVAL,DATAFLAG(1,ILINE-I)
+
+
+_______________________________________________________________________________
+      
+$STORAGE:2
+      SUBROUTINE CKINTGR(INTVAL,IER)                      
+C
+C       ** OBJECTIVE:  SET ERROR FLAG TO 1 IF THE INTEGER VALUE IS TOO BIG
+C                      FOR I5 FORMAT.  REDEFINE THE INTEGER TO THE MAXIMUM
+C                      POSITIVE OR MINIMUM NEGATIVE VALUE THAT WILL FIT IN 
+C                      AN I5 FORMAT.     
+C       ** REVISION 8-31-93  NEW ROUTINE 
+
+_______________________________________________________________________________
+      

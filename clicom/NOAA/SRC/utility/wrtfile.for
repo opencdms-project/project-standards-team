@@ -1,0 +1,175 @@
+$storage:2
+
+      SUBROUTINE WRTFILE(FILNAME)
+C
+C  THIS ROUTINE PRINTS A TEXT FILE TO THE SCREEN WITH A PAUSE AT THE
+C     END OF EACH PAGE.  IT STOPS IF AN F4 KEY IS HIT, SCOLLS UP IF A
+C     PgUp IS HIT AND GOES TO THE NEXT PAGE IF A PgDn IS HIT, and
+c     RETURNS IF A F2 IS HIT. ---> MAXIMUM OF 100 LINES PER FILE <---
+C
+      CHARACTER*64 FILNAME
+      CHARACTER*2 INCHAR
+      CHARACTER*80 TXTFIL(100)
+C
+C   IF IN COLOR MODE GO TO PAGE 1 OTHERWIZE NO HELP AVAILABLE
+C
+      CALL STATUS(IMODE,ICLTYP,IPAGE)
+      IF (IMODE.NE.3) THEN
+         CALL WRTMSG(2,267,15,1,1,' ',0)
+         RETURN
+      END IF
+C
+      IFG = 7
+      IBG = 1
+C
+C   LOAD THE FILE TO BE PRINTED INTO TXTFIL (MAX 100 LINES)
+C
+   40 CONTINUE
+      OPEN(59,FILE=FILNAME,STATUS='OLD',FORM='FORMATTED'
+     +      ,SHARE='DENYWR',MODE='READ',IOSTAT=IOCHK)
+      IF(IOCHK.NE.0) THEN
+         TXTFIL(1) = FILNAME
+         IF (IOCHK.EQ.6416) THEN
+            CALL WRTMSG(3,153,12,1,1,TXTFIL(1),20)
+            RETURN
+         ELSE
+            CALL WRTMSG(3,153,12,1,0,TXTFIL(1),20)
+            CALL WRTMSG(2,248,12,0,0,' ',0)
+   60       CONTINUE
+            CALL GETCHAR(0,INCHAR)
+            CALL CLRMSG(3)
+            CALL CLRMSG(2)
+            IF (INCHAR.EQ.'R ')THEN
+               GO TO 40
+            ELSE IF (INCHAR.EQ.'A ')THEN
+               RETURN
+            ELSE
+               CALL BEEP
+               GO TO 60
+            END IF
+         END IF
+      END IF
+      DO 70 I = 1,100
+         READ(59,'(A80)',END=80) TXTFIL(I)
+         NUMLINE = I
+   70 CONTINUE
+   80 CONTINUE
+      CLOSE(59)
+      CALL ACTPAG(1,IERR)
+      CALL CLS  
+      CALL CLTEXT(IBG,IBG,IERR)
+C
+C   PRINT THE TEXT FILE AND GET INPUT RESPONSES
+C
+      IPAGE = 1
+      CALL PAGWRT(IPAGE,NUMLINE,TXTFIL,IFG)
+  100 CONTINUE
+      CALL GETCHAR(0,INCHAR)
+      IF (INCHAR.EQ.'DP') THEN
+         CALL PAGWRT(IPAGE,NUMLINE,TXTFIL,IFG)
+      ELSE IF (INCHAR.EQ.'UP') THEN
+         IF (IPAGE.GT.2) THEN
+            IPAGE = IPAGE - 2
+            CALL PAGWRT(IPAGE,NUMLINE,TXTFIL,IFG)
+         ELSE
+            CALL BEEP
+         END IF
+      ELSE IF (INCHAR.EQ.'HO') THEN
+         IPAGE = 1
+         CALL PAGWRT(IPAGE,NUMLINE,TXTFIL,IFG)
+      ELSE IF (INCHAR.EQ.'4F') THEN
+         CALL LOCATE(24,0,IERR)
+         CALL ACTPAG(0,IERR)
+         CALL CLTEXT(0,0,IERR)
+         RETURN
+      END IF
+      GO TO 100  
+      END
+C
+$PAGE
+***********************************************************************
+
+      SUBROUTINE PAGWRT(IPAGE,NUMLINE,TXTFIL,IFG)
+C
+C   ROUTINE TO WRITE A SCREEN WORTH OF A TEXT FILE(59) TO THE SCREEN
+C
+      CHARACTER*80 TXTFIL(100)
+      CHARACTER*81 MESSAGE,MORTXT,ENDTXT
+      CHARACTER*80 INTXT
+      CHARACTER*81 OUTTXT
+      CHARACTER*3  DEVERS
+      LOGICAL FRSTCL
+      EQUIVALENCE (INTXT,OUTTXT)
+      DATA FRSTCL /.TRUE./, MESSAGE,MORTXT,ENDTXT /3*' '/
+      OUTTXT(81:81) = CHAR(0) 
+C
+      IF (FRSTCL) THEN
+         FRSTCL = .FALSE.
+         CALL GETDEASE(DEVERS)
+         CALL GETMSG(310,MESSAGE)
+         DO 50 J = 1,80
+            IF (MESSAGE(J:J).EQ.',') THEN
+               ISPLIT = J
+               GO TO 60
+            END IF
+50       CONTINUE
+60       CONTINUE
+         MORTXT = MESSAGE(2:ISPLIT-2)
+         ENDTXT = ' '
+         DO 70 J = ISPLIT+2,80
+            IF (MESSAGE(J:J).EQ.'''') THEN
+               GO TO 75
+            END IF
+            J1 = J - ISPLIT - 1
+            ENDTXT(J1:J1) = MESSAGE(J:J)
+70       CONTINUE
+75       CONTINUE            
+         MORTXT(81:81) = CHAR(0)
+         ENDTXT(81:81) = CHAR(0)
+         IF (DEVERS.EQ.'4.0') THEN
+            NMSG=495
+         ELSE
+            NMSG=494
+         ENDIF      
+         CALL GETMSG(NMSG,MESSAGE)
+         MESSAGE(81:81) = CHAR(0)
+         CALL GETMSG(999,MESSAGE)
+      END IF
+C
+      ISTRT = (IPAGE - 1) * 23 + 1
+      IEND = ISTRT + 22
+      IF (ISTRT.GT.NUMLINE) THEN
+         CALL BEEP
+         RETURN
+      ELSE IF (IEND.GT.NUMLINE) THEN
+         IEND = NUMLINE
+      END IF
+      IPAGE = IPAGE + 1
+C
+      CALL CLRCLS(1,IFG)
+C
+      I1 = 0
+      DO 200 I = ISTRT,IEND
+         I1 = I1 + 1
+         IF (TXTFIL(I).NE.'                    ') THEN
+            INTXT = TXTFIL(I)
+            CALL LOCATE(I1-1,0,IERR)
+            CALL CWRITE(OUTTXT,IFG,IERR)
+         END IF
+  200 CONTINUE
+      IF (IEND.EQ.NUMLINE) THEN
+         CALL LOCATE(I1,0,IERR)
+         CALL CWRITE(ENDTXT,12,IERR)
+      ELSE
+         CALL LOCATE(23,0,IERR)
+         CALL CWRITE(MORTXT,12,IERR)
+      END IF
+      CALL LOCATE(24,0,IERR)
+      CALL CLTEXT(2,1,IERR)
+      CALL CWRITE(MESSAGE,0,IERR)
+      CALL CLTEXT(1,1,IERR)
+      RETURN
+      END 
+
+ 
+

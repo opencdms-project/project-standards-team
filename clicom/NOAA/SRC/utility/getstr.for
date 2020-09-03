@@ -1,0 +1,151 @@
+$STORAGE:2
+
+      SUBROUTINE GETSTR(FLDTYPE,FIELD,FLDLEN,FGCOLOR,BGCOLOR,RTNFLAG)
+C
+C   ROUTINE TO READ A DATA STRING - IT INCLUDES CODE TO POSITION THE    
+C       CURSOR AND CHECK FUNCTION KEYS ETC..     
+C
+      INTEGER*2 FIELDPOS,VALPOS,STRTCOL,FLDLEN,FLDTYPE
+      CHARACTER*1 FIELD(FLDLEN), INCHAR(2),ACHAR(2),RTNCODE
+      CHARACTER*2 CNTRLCHAR,RTNFLAG
+      CHARACTER*10 FMT,HOLDNUM
+      REAL*4 RVALUE
+C         FLDTYPE = 0, ALPHA CHARACTER - CONVERT TO UPPER CASE
+C                 = 1, ALPHA CHARACTER - DO NOT CONVERT TO UPPER CASE
+C                 = 2, STANDARD VALUE (LAST POSTION ALPHA)
+C                                 (NOT USED IN THIS ROUTINE)
+C                 = 3, INTEGER NUMBER 
+C                 = 4, REAL (FLOATING PT) NUMBER
+C                 = 9, ALPHA WITH NO ECHO
+C
+      INTEGER*2 FGCOLOR,BGCOLOR
+      LOGICAL INSERT,FRSTCL
+      EQUIVALENCE (CNTRLCHAR,INCHAR)
+      DATA FRSTCL /.TRUE./
+C
+C   ON FIRST CALL TO THIS ROUTINE SET TEXT COLORS FOR COLOR OR B&W
+C
+      IF (FRSTCL) THEN
+         FRSTCL = .FALSE.
+         CALL STATUS(IMODE,ICLTYP,IPAGE)
+      END IF
+      IF (IMODE.EQ.3) THEN
+         IBG = BGCOLOR
+         IFG = FGCOLOR
+      ELSE
+         IBG = 0
+         IFG = 1
+      END IF
+C
+      ACHAR(2) = CHAR(0)
+      FIELDPOS = 1
+      VALPOS = 1
+      CALL POSLIN(IROW,ICOL)
+      STRTCOL = ICOL
+      INSERT = .FALSE.
+      CALL WRTSTR(FIELD,FLDLEN,FGCOLOR,BGCOLOR)
+C
+C    START LOOP TO RETRIEVE AND STORE THE INPUT CHARACTERS
+C
+  100 CALL LOCATE(IROW,ICOL,IERR)
+      CALL GETCHAR(FLDTYPE,INCHAR)        
+C
+      IF (INCHAR(2).EQ.' ') THEN
+         RTNFLAG = '  '
+C 
+C ---- A NORMAL KEYBOARD CHARACTER HAS BEEN ENTERED - CHECK FOR
+C            VALIDITY
+C       
+         IF (FLDTYPE.EQ.3.OR.FLDTYPE.EQ.4) THEN
+            IF (INCHAR(1).LT.'0'.OR.INCHAR(1).GT.'9') THEN
+               IF (INCHAR(1).EQ.'-') THEN
+                  IF (VALPOS.GT.1) THEN
+                     CALL WRTMSG(2,67,12,1,0,' ',0)
+                     GO TO 100
+                  END IF
+               ELSE IF (.NOT.(FLDTYPE.EQ.4.AND.INCHAR(1).EQ.'.')) THEN
+                  CALL WRTMSG(2,67,12,1,0,' ',0)
+                  GO TO 100
+               END IF
+            END IF
+         END IF 
+C
+C      THE CHARACTER HAS BEEN ACCEPTED
+C
+C
+C            STORE NORMALLY - IF INSERT MODE IS OFF
+C
+          IF (.NOT.INSERT) THEN
+             ACHAR(1) = INCHAR(1)
+             IF (FLDTYPE.NE.9) THEN
+                CALL CLTEXT(IBG,0,IERR)
+                CALL CWRITE(ACHAR,IFG,IERR)
+             END IF
+             FIELD(FIELDPOS) = INCHAR(1)
+             FIELDPOS = FIELDPOS + 1
+             VALPOS = VALPOS + 1
+             ICOL = ICOL + 1 
+             IF (FIELDPOS.GT.FLDLEN) THEN
+                GO TO 500
+             ELSE
+                GO TO 100
+             END IF
+          ELSE
+C           
+C       INSERT MODE IS ON
+C
+             CALL INSCHR(0,FIELD,FLDLEN,FIELDPOS,VALPOS,
+     +           INCHAR(1),ICOL)
+             IF (FLDTYPE.NE.9) THEN
+                CALL LOCATE(IROW,STRTCOL,IERR)
+                CALL WRTSTR(FIELD,FLDLEN,FGCOLOR,BGCOLOR)
+             END IF
+             GO TO 100 
+         END IF
+C
+C  --- OTHERWISE A CONTROL CHARACTER HAS BEEN ENTERED
+C
+      ELSE
+         RTNFLAG = CNTRLCHAR
+         CALL CSRCNTRL(0,CNTRLCHAR,FIELD,FLDLEN,FIELDPOS
+     +          ,VALPOS,ICOL,INSERT,RTNCODE)
+         IF (RTNCODE.EQ.'0') THEN
+            IF (FLDTYPE.NE.9.AND.
+     +           (CNTRLCHAR.EQ.'6F'.OR.CNTRLCHAR.EQ.'DE')) THEN
+               CALL LOCATE(IROW,STRTCOL,IERR)
+               CALL WRTSTR(FIELD,FLDLEN,FGCOLOR,BGCOLOR)
+            END IF
+            GO TO 100
+         END IF    
+      END IF
+C
+  500 CONTINUE
+      IF (INSERT) THEN
+         CALL INSSWTCH(INSERT)
+      END IF
+C
+C   CHECK NUMERIC FIELDS BEFORE RETURNING
+C
+      IF (FLDTYPE.EQ.4) THEN
+         IF (FLDLEN.LT.10) THEN
+            WRITE(FMT,530) FLDLEN
+         ELSE
+            WRITE(FMT,540) FLDLEN
+         END IF
+         HOLDNUM = '      '
+         HOLDNUM(1:FLDLEN) = FIELD(1)(1:FLDLEN)
+         READ(HOLDNUM,FMT,ERR=600) RVALUE
+  530    FORMAT('(BN,F',I1,'.0) ')
+  540    FORMAT('(BN,F',I2,'.0)')
+      END IF
+C
+      RETURN
+C
+  600 CONTINUE
+      CALL WRTMSG(2,69,12,1,0,' ',0)
+      FIELDPOS = 1
+      VALPOS = 1
+      ICOL = STRTCOL
+      GO TO 100
+
+      END

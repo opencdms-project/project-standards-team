@@ -1,0 +1,113 @@
+CODE REVISIONS AFTER THE RELEASE OF CLICOM 3.0 (July 1992) 
+(Actual date diskettes were mailed: 9-2-92)
+
+File name:     ADMIN.RVA
+Revision nbr:  1   12-15-93
+Revision nbr:  2   01-04-94
+
+******************************************************************************
+******************************************************************************
+
+File:           SETUSERS.FOR
+Revision nbr:   1  
+Revision date:  12-15-93
+Release date:   
+Problems:       1 -- When I=0 and array HLDDEL is referenced in the if test, an
+                     out of bound array reference is made.  Normally this does
+                     not cause any pathological problems, but the code needs to
+                     be revised.  Error detected by Denis Stuber of France.
+Solution:       1 -- Revise code in SETUSERS as described below.
+                2 -- Recompile program ADMIN which calls routine SETUSERS.
+_______________________________________________________________________________
+
+      SUBROUTINE SETUSERS       
+      .                         
+      .                         
+  160    CONTINUE
+         RTNFLAG = ' '
+C          ** REVISION JML -- 12-15-93
+C             REARRANGE ORDER OF IF TESTS TO AVOID REFERENCE TO ARRAY HLDDEL
+C             WHEN I=0
+         IF (I.EQ.0) THEN  -----\  Move if condition for I=0 from last to first
+            MESSAG = ' '   -----/  ELSE changed to test for I=0
+         ELSEIF (HLDDEL(I).EQ.1) THEN      ----->> IF changed to ELSEIF
+            WRITE(MESSAG,170) I
+  170       FORMAT('Record number ',I2,' - it is deleted')
+         ELSE                              ----->> Test for I>0 changed to else
+            WRITE(MESSAG,180) I
+  180       FORMAT('Record number ',I2)
+         END IF
+                                
+******************************************************************************
+
+File:           SETUP.FOR
+Revision nbr:   2  
+Revision date:  1-4-94
+Release date:   
+Problems:       1 -- Y/N response is hard set.
+Solution:       1 -- Revise code in SETUP as described below.
+                2 -- Recompile program ADMIN which calls routine SETUP.
+_______________________________________________________________________________
+
+$STORAGE:2
+      SUBROUTINE SETUP
+C
+C   PROGRAM TO DEFINE A KEY-ENTRY FORM, BUILD THE SETUP FILE, AND 
+C      DEFINE THE DATA AND INDEX FILES THAT WILL BE USED
+C
+$INCLUDE:'VAL1.INC'
+C
+      PARAMETER (MAX2ELEM = (MAXELEM * 2)+2)
+      CHARACTER*1 REPLY,DELMARK,RTNCODE
+      CHARACTER*1 YESUP,YESLO,NOUP,NOLO    ------------->> ADD LINE
+      CHARACTER*2 RTNFLAG
+.
+.      
+C
+      LOGICAL NEWFILE, ELEMFOUND, REINIT, NEWELEM, TFVAL
+C      
+      LOGICAL FIRSTCALL          ----|
+      DATA FIRSTCALL /.TRUE./        |----->> ADD LINES
+C                                ----|
+      DATA LOWELEM /201,401,001,101,101,101/
+     +    ,HIELEM  /300,500,100,200,200,200/
+      DATA DATATYPE /'MLY','10D','DLY','SYN','HLY','15M','U-A'/
+     +    ,INUMLINE /12,36,31,8,24,96,100/
+     +    ,BLANK /'        '/
+     +    ,HELP1,HELP2 /'P:\HELP\SETUP1.HLP','P:\HELP\SETUP2.HLP'/
+     +    ,HELP3,HELP4 /'P:\HELP\SETUP3.HLP','P:\HELP\SETUP4.HLP'/
+C
+      IF (FIRSTCALL) THEN              ------|
+         FIRSTCALL = .FALSE.                 |
+         CALL GETYN(1,1,YESUP,YESLO)         |------->> ADD LINES
+         CALL GETYN(2,1,NOUP,NOLO)           |
+      ENDIF                                  |
+C                                      ------|
+      DELKEY = 0
+      BGNIDX = 2
+      NUMIDX = 1
+.
+.      
+  110    CONTINUE
+C
+C     IF THE NUMBER OF ELEMENTS HAS CHANGED WARN THE USER AND 
+C     SET FLAG TO RE-INITIALIZE THE DATA AND INDEX FILES
+C
+         REPLY = 'N'       ------------->> DELETE LINE
+         TFVAL = .TRUE.
+         IF (OPTION.EQ.2.) THEN
+.
+.
+  120       CONTINUE
+            CALL LOCATE(19,38,IERR)
+            REPLY = ' '
+            CALL GETSTR(0,REPLY,1,14,0,RTNFLAG)
+            IF (RTNFLAG.EQ.'4F')THEN
+               GO TO 20
+            END IF
+            IF (REPLY.EQ.NOUP .OR. REPLY.EQ.NOLO) THEN   ------>> REPLACE LINE
+               GO TO 20
+            ELSE IF(REPLY.NE.YESUP .AND. REPLY.NE.YESLO) THEN  --->>REPLACE LINE
+               CALL WRTMSG(3,247,12,1,0,' ',0)
+_______________________________________________________________________________
+

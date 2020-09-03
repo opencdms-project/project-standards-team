@@ -1,0 +1,545 @@
+$STORAGE:2
+      PROGRAM TSTOUT
+C------------------------------------------------------------------------------
+C     UPPER LEVEL PROGRAM THAT MANAGES THE OUTPUT DISPOSITION (PRINTER, 
+C     PLOTTER, OR DISK) OF THE GRAPH ON THE MONITOR'S SCREEN.
+C------------------------------------------------------------------------------
+$INCLUDE: 'GRFPARM.INC'
+$INCLUDE: 'GRAFVAR.INC'
+$INCLUDE: 'DATAVAL.INC'
+$INCLUDE: 'FRMPOS.INC'
+$INCLUDE: 'CURRPLT.INC'
+$INCLUDE: 'SYSFONT.INC'
+C
+      INTEGER*2 HELPLVL,NTTL,NOKD,LENMSG
+      PARAMETER(NOKD=3)
+      CHARACTER INCHAR*2, RTNCODE*1
+      CHARACTER*2 EXITOPT,OKOPT(NOKD)
+      CHARACTER*1 TTLSAV(2)
+      CHARACTER*28 GRAFNAME
+      CHARACTER*14 MSGTXT
+C **DEBUG
+      CHARACTER*30 KRNLPATH
+C **END DEBUG      
+      DATA NTTL/1/
+C       .. VALID OPTION FLAGS IN FILE DATACOM.CON
+C          GO=RETURN FROM TSTOUT
+      DATA OKOPT/'4','GO','ZZ'/
+C       .. OPTION FLAG WRITTEN TO DATACOM.CON WHEN EXITING TO GRAFMAN
+      DATA EXITOPT/'GO'/      
+C
+C **DEBUG
+C      DATA KRNLPATH/'^C:\CLICOM\HALO\KERNELS^'/
+C      CALL SETKER(KRNLPATH)
+C      CALL CKHALOER(1,'SETKER',IER)
+C      IF (IER.NE.0) GO TO 995
+       OPEN(999,FILE='BUGTXT.PRT')
+      ISYSFNT  = 9
+      SYSASP   = 1.
+      SYSHTND  = .03
+C **END DEBUG      
+C
+C       **  Open and read GRAPHICS.GDF file and store the values in the
+C           GRAFVAR common block.
+C
+      CALL RDGRAF('GRAPHICS',ITYPE,NELEM,RTNCODE)
+C
+C       ** INITIAL GRAPHICS
+C
+      IF (RTNCODE.EQ.'0') THEN
+C          .. NORMAL RETURN FROM RDGRAF -- DEFINE PALETTES
+         CALL BGNHALO(1,PALETTE,PALDEF)
+      ELSE
+C          .. ERROR RETURN FROM RDGRAF -- USE DEFAULT PALETTES
+         CALL BGNHALO(0,PALETTE,PALDEF)
+         GO TO 900
+      ENDIF      
+C
+C       ** OPEN AND READ DATACOM.CON FILE AND STORE CONSTANTS IN THE
+C          DATAVAL COMMON BLOCK; CLOSE FILE
+      CALL RDDCON(1,OKOPT,NOKD,INCHAR,RTNCODE)
+      IF (RTNCODE.EQ.'2') THEN
+C          .. ERROR IN OPENING FILE      
+         GO TO 905        
+      ELSE IF (RTNCODE.EQ.'3') THEN
+C          .. INVALID OPTION CHARACTER      
+         GO TO 920
+      ENDIF
+      MXDATROW = NROWDIM
+C
+C       ** Open the GRAPHICS.API file as unit 17 and read the CURRENT DATASET
+C          into memory.
+C
+      IDATAOPT=0
+      CALL GETDSET(ITYPSET,IDATAOPT,2,NTTL,TTLSAV,INCSET,RTNCODE)
+      IF (RTNCODE.NE.'0') GO TO 900
+C      
+   20 CONTINUE
+      HELPLVL=2
+      XWIN=.1
+      YWIN=.8
+      CALL GRAFMNU(1,2,XWIN,YWIN,HELPLVL,INCHAR)
+C      
+      IF (INCHAR.EQ.'ES') THEN
+C      
+C          .. EXIT GRAFMAN 
+            GO TO 300
+      END IF
+C
+C   1.Save graph definition  2.Save screen  3.Printer  4.Plotter
+C
+      XL = 0.1
+      YL = 0.2
+      HELPLVL = 5
+      INCHAR=1
+  100 CALL GRAFMNU(4,5,XL,YL,HELPLVL,INCHAR)
+      IF (INCHAR.EQ.'1 ') THEN
+         GRAFNAME = GDFNAME     
+         ITYPE = IOBSTYP
+         ITEMP = 0 
+         CALL WRTGRAF(GRAFNAME,ITYPE,ITEMP,INCHAR)
+      ELSE IF (INCHAR.EQ.'2 ') THEN
+         CALL WRTGSCRN(PALETTE,PALDEF)
+      ELSE IF (INCHAR.EQ.'3 ') THEN
+         CALL PRNTMAN(PALETTE,PALDEF)
+      ELSE IF (INCHAR.EQ.'4 ') THEN
+C ** DEBUG       
+         MSGN1=549
+         MSGN2=202
+         XWIN=.1
+         YWIN=.95
+         CALL GRAFNOTE(XWIN,YWIN,MSGN1,MSGN2,' ',0,INCHAR)
+C         CALL PLOTMAN(...) 
+      ELSE IF (INCHAR .EQ. '4F' .OR. INCHAR .EQ. 'ES') THEN
+         GO TO 20
+      END IF
+      GO TO 100
+C    
+  300 CONTINUE
+            ISTP=0
+            INCHAR=EXITOPT
+      CALL WRFILPOS(-1,IGRAPH,NUMCOL,IDUM)
+C       .. OPTION FLAG WRITTEN TO DATACOM.CON IS THE CURRENT MENU CHOICE VALUE
+C          (7=LINES  8=SIZE/BKGND  9=DATA) OR 'ZZ' IF EXITING TO GRAFINIT
+      CALL WRTDCON(0,1,INCHAR,RTNCODE)
+      IF (RTNCODE.NE.'0') GO TO 910        
+      CALL FINHALO
+C          .. EXIT GRAPHICS; RETURN TO GRAFINIT.EXE      
+         CALL LOCATE(23,0,IERR)
+         STOP 1
+C
+C       ** FATAL ERROR      
+C
+  900 CONTINUE
+C          .. ERROR READING FILE: GRAPHICS.GDF  
+         MSGN1=191
+         MSGTXT='  GRAPHICS.GDF'
+         LENMSG=14
+         GO TO 990
+  905 CONTINUE
+C          .. ERROR READING FILE: DATACOM.CON  
+         MSGN1=191
+         MSGTXT='  DATACOM.CON'
+         LENMSG=13
+         GO TO 990
+  910 CONTINUE
+C          .. ERROR WRITING FILE: DATACOM.CON  
+         MSGN1=192
+         MSGTXT='  DATACOM.CON'
+         LENMSG=13
+         GO TO 990
+  915 CONTINUE
+C          .. ERROR READING FILE: GRAPHICS.API  
+         MSGN1=191
+         MSGTXT='  GRAPHICS.API'
+         LENMSG=14
+         GO TO 990
+  920 CONTINUE
+C          .. ILLEGAL OPTIONS CHARACTER  
+         MSGN1=551
+         MSGTXT=' '
+         LENMSG=0
+         GO TO 990
+  990 CONTINUE         
+         MSGN2=202
+         XWIN=.1
+         YWIN=.95
+         CALL GRAFNOTE(XWIN,YWIN,MSGN1,MSGN2,MSGTXT,LENMSG,INCHAR)
+  995 CONTINUE         
+         CALL WRFILPOS(-1,IGRAPH,NUMCOL,IDUM)
+         INCHAR = EXITOPT
+         CALL WRTDCON(0,0,INCHAR,RTNCODE)
+         IF (RTNCODE.NE.'0') THEN
+            MSGN1=192
+            MSGTXT='  DATACOM.CON'
+            LENMSG=13
+            CALL GRAFNOTE(XWIN,YWIN,MSGN1,MSGN2,MSGTXT,LENMSG,INCHAR)
+         ENDIF            
+         CALL FINHALO
+         OPEN (UNIT=62,FILE='O:\DATA\SQUX',ACCESS='DIRECT',
+     +         FORM='BINARY',RECL=512,STATUS='OLD',IOSTAT=IOCHK)
+         IF (IOCHK.EQ.0) THEN
+            CLOSE(62,STATUS='DELETE')
+         ENDIF   
+         CALL LOCATE(23,0,IERR)
+         STOP ' '
+      END
+      SUBROUTINE DRAWGRF(IGOPT,RTNCODE)
+C
+C       ** OBJECTIVE:  CALLS ROUTINE PCTRL WHICH DRAWS THE PLOT USING THE
+C                      CURRENT VALUES IN THE GRAPH DEFINITION FILE.  PAUSES
+C                      AFTER PLOT AND WAITS FOR USER RESPONSE.  PRINTS ERROR
+C                      MESSAGES.
+C
+C       ** NOTE:       THERE ARE TWO VERSIONS OF ROUTINE PCTRL.  THE ONE
+C                      USED IN GRFMN2 PLOTS MAPS.  THE VERSION USED IN
+C                      GRFMN134 PLOTS TIMESERIES, SKEWT, AND WINDROSE.
+C       ** INPUT:
+C              IGOPT...GRAPH OPTION FLAG THAT CONTROLS SELECTION OF DATA
+C                      THAT WILL BE PLOTTED AND PLOT CONTROLS
+C                     -1=REDRAW CURRENT PLOT -- REGRID DATA -- PAUSE (MAP ONLY)
+C                      0=REDRAW CURRENT PLOT -- PAUSE
+C                      1=NEXT PLOT IN CURRENT DATA FRAME -- PAUSE
+C                      2=NEW DATA FRAME -- PAUSE
+C                      3=REDRAW CURRENT PLOT -- NO PAUSE
+C                      4=REDRAW CURRENT SCREEN FOR PRINTING -- NO PAUSE
+C       ** OUTPUT:
+C            RTNCODE...ONE CHARACTER ERROR FLAG
+C                      '0'=NORMAL EXIT
+C                      '1'=EXIT USING ESC OR F4
+C                      '2'=NO MORE PLOTS IN DATASET
+C                      '3'=PCTRL2 CALLED WITH PLOT TYPE = TIMESERIES(1),
+C                          SKEWT(3), OR WINDROSE(4)
+C                      '4'=PCTRL134 CALLED WHEN PLOT WAS MAP
+C                      '5'=NO DATA AVAILABLE FOR CURRENT PLOT
+C                      '6'=FILE WROSPOKE.DEF NOT AVAILABLE TO WINDROSE 
+C                      NOTE:  VALUE SET IN RTNCODE IS USED TO DETERMINE IF A
+C                             PLOT IS ON THE SCREEN.  RTNCODE VALUE IS SET TO 
+C                             '7' BY SKEWT ROUTINES TO INDICATED PRESSURE OR
+C                             TEMPERATURE IS OUT OF SORT BUT PLOT IS STILL ON
+C                             SCREEN SO RTNCODE IS RESET TO '0' AFTER ERROR 
+C                             MESSAGE IS DISPLAYED.  ACTION IS SIMILAR WHEN
+C                             RTNCODE IS '8'.  THIS RETURN CODE IS SET BY SKEWT
+C                             ROUTINES WHEN NO LINES ARE PLOTTED, BUT THE
+C                             BACKGROUND IS STILL ON THE SCREEN.
+C
+      INTEGER*2 IGOPT
+C
+$INCLUDE: 'GRFPARM.INC'
+$INCLUDE: 'GRAFVAR.INC'
+$INCLUDE: 'CURRPLT.INC'
+C
+      CHARACTER INCHAR*2, RTNCODE*1, RTFLG*1
+      INTEGER*2 IOPT
+      LOGICAL PAUSEFLG
+C
+      RTNCODE='0'      
+C      
+C **DEBUG -- THIS ROUTINE WILL CONTROL THE PLOTTING OF 
+C **DEBUG -- MULTIPLE PLOTS PER SCREEN           
+      IF (IGRAPH.EQ.3) THEN
+C
+C          .. SKEWT -- ALL OPTIONS      
+         IOPT=IGOPT
+         PAUSEFLG=.FALSE.
+      ELSE   
+         IF (IGOPT.EQ.3) THEN
+C         
+C             .. REDRAW CURRENT PLOT -- NO PAUSE
+            IF (IGRAPH.EQ.2) THEN
+C                .. MAP
+               IOPT=-1
+            ELSE   
+C                .. TIMESERIES,WINDROSE 
+               IOPT=0
+            ENDIF   
+            PAUSEFLG=.FALSE.
+         ELSE IF (IGOPT.EQ.4) THEN
+C             .. TIMESERIES,MAP,WINDROSE -- REDRAW CURRENT SCREEN FOR PRINTING
+            IOPT=IGOPT
+            PAUSEFLG=.FALSE.
+         ELSE
+C             .. TIMESERIES,MAP,WINDROSE -- OPTIONS -1,0,1,2
+            IOPT=IGOPT
+            PAUSEFLG=.TRUE.
+         ENDIF   
+      ENDIF   
+      CALL PCTRL(IOPT,RTNCODE)
+C
+C       ** RETURN CODE=0 INDICATES NORMAL EXIT FROM ROUTINE 
+C                     =1 INDICATES ROUTINE WAS EXITED BY ESC OR F4
+C
+      IF (RTNCODE.EQ.'0') THEN      
+         IF (PAUSEFLG) THEN
+C
+C             .. PROGRAM PAUSES UNTIL ANY CHARACTER FROM THE KEYBOARD OR
+C                ONE OF THE MOUSE BUTTONS IS PRESSED      
+            RTFLG = '1'
+   50       CONTINUE
+            CALL RDLOC(XP,YP,INCHAR,RTFLG)      
+            IF (RTFLG.EQ.'1' .AND. (INCHAR.NE.'RE' .AND.
+     +                              INCHAR.NE.'4F')) THEN
+               GO TO 50
+            ENDIF
+         ENDIF      
+      ELSE IF (RTNCODE.NE.'1' .AND. IGOPT.NE.4) THEN
+C
+C          ** ERROR MESSAGES ARE PRINTED ONLY IF PLOT GOES TO SCREEN AND
+C             AND ROUTINE WAS NOT EXITED WITH ESC/F4
+C
+         RTFLG = ' ' 
+         IF (RTNCODE.EQ.'2') THEN
+C             .. ERROR:  NO MORE PLOTS IN FRAME      
+            MSGN1=535
+         ELSE IF (RTNCODE.EQ.'3') THEN
+C             .. ERROR:  PCTRL2 CALLED WITH PLOT TYPE = TIMESERIES(1),
+C                        SKEWT(3), OR WINDROSE(4)
+            MSGN1=189
+         ELSE IF (RTNCODE.EQ.'4') THEN
+C             .. ERROR:  PCTRL134 CALLED WITH PLOT TYPE = MAP(2)      
+            MSGN1=190
+         ELSE IF (RTNCODE.EQ.'5') THEN
+C             .. ERROR:  NO DATA AVAILABLE FOR CURRENT PLOT      
+            MSGN1=547
+         ELSE IF (RTNCODE.EQ.'6') THEN
+C             .. ERROR:  FILE WROSPOKE.DEF NOT AVAILABLE TO WINDROSE 
+C                        ERROR MESSAGE HANDLED IN ROUTINE WINDROSE      
+            GO TO 100
+         ELSE IF (RTNCODE.EQ.'7') THEN
+C             .. ERROR:  PRESSURE AND/OR HEIGHT VALUES ARE OUT OF SORT
+C                        SKEWT COULD NOT DRAW HEIGHT LABELS
+            MSGN1=443
+            RTNCODE = '0'
+         ELSE IF (RTNCODE.EQ.'8') THEN
+C             .. ERROR:  NO DATA TO PLOT.  EITHER VALUES ARE MISSING OR 
+C                        PRESSURES ARE TOO LOW TO PLOT; A MINIMUM OF TWO 
+C                        POINTS WITH PRESSURES GREATER THAN 100 ARE REQUIRED.
+            MSGN1=442
+            RTNCODE = '0'
+         ELSE            
+C             .. UNKNOWN RETURN CODE          
+            MSGN1=188
+            RTFLG = RTNCODE
+         ENDIF
+         MSGN2=202
+         XWIN=.1
+         YWIN=.95
+         CALL GRAFNOTE(XWIN,YWIN,MSGN1,MSGN2,RTFLG,1,INCHAR)
+      ELSE IF (RTNCODE.EQ.'7' .OR. RTNCODE.EQ.'8') THEN
+         RTNCODE = '0'   
+      ENDIF
+  100 CONTINUE      
+      RETURN 
+      END
+
+      SUBROUTINE BGNHALO(IDEF,PALETTE,PALDEF)
+C
+C       **INPUT:
+C            IDEF......FLAG TO INDICATE MODE AND PALETTE SETTINGS
+C                       0=DEVMODE, DEFAULT PALETTE
+C                       1=DEVMODE, USER DEFINED PALETTES
+C                      10=AQCMODE, DEFAULT PALETTE
+C                      11=AQCMODE, USER DEFINED PALETTES
+C            PALETTE...
+C            PALDEF....      
+C
+      INTEGER*2 IDEF,PALETTE,PALDEF(16,*)      
+$INCLUDE:'HALOENV.INC'
+      COMMON/DEVHNDL/IHNDLSCR,IHNDLVRI,SCRNASP,VRIASP,DEVASP
+      CHARACTER*1  RTNCODE
+      CHARACTER*30 KRNLPATH
+      LOGICAL FIRSTCALL
+C      
+      DATA FIRSTCALL/.TRUE./
+C **DEBUG      
+C     DATA KRNLPATH/'&P:\HALO\KERNELS&'/
+C      DATA KRNLPATH/'&C:\CLICOM\HALO\KERNELS&'/
+C      
+C       ** INITIALIZE THE GRAPHICS DEVICE
+C
+      IF (FIRSTCALL) THEN
+         FIRSTCALL = .FALSE.
+         IHNDLSCR=0
+         IHNDLVRI=0
+         SCRNASP =0
+         RTNCODE = '0'
+C         CALL SETKER(KRNLPATH)
+         CALL HALOINIT(RTNCODE)
+         IF (RTNCODE.NE.'0') GO TO 900
+         CALL SETDEV(DEVICE)
+         CALL CKHALOER(1,'SETDEV-SCR',IER)
+         IF (IER.NE.0) GO TO 990
+      ELSE   
+         CALL SETADE(IHNDLSCR)
+         CALL CKHALOER(1,'SETADE-SCR',IER)
+         IF (IER.NE.0) GO TO 990
+      ENDIF
+C **DEBUG
+        WRITE(999,*)'BGNHALO AQC,DEV MODE=',AQCMODE,DEVMODE,'-',DEVICE
+      IF (IDEF.GE.10) THEN
+         CALL INITGR(AQCMODE)
+      ELSE
+         CALL INITGR(DEVMODE)
+      ENDIF
+      CALL CKHALOER(1,'INITGR-SCR',IER)
+      IF (IER.NE.0) GO TO 990
+      CALL INQADE(IHNDLSCR)
+      CALL CKHALOER(1,'INQADE-SCR',IER)
+      IF (IER.NE.0) GO TO 990
+      CALL SETIEE(1)
+C
+C       ** INITIAL PALETTE DEFINITIONS AND CURRENT PALETTE
+C
+C **DEBUG
+      IF (DEVMODE.GT.0) THEN
+         IF (IDEF.EQ.1 .OR. IDEF.EQ.11) THEN
+            CALL SETGPAL(PALETTE,PALDEF)
+         ENDIF         
+      ENDIF         
+C      
+c       ** If you are not using a IBM EGA card the mode number may have
+C          to be MODIFIED.  For example: CGA 320x200 4 colors mode would
+C          equal 0 
+C
+      CALL SETCOL(0)
+      CALL CLR
+C      
+C       .. IN ORDER TO OPEN THE VIEWPORT TO THE ENTIRE SCREEN, A MAX VALUE
+C          EQUAL TO .999 MUST BE USED.  A VALUE OF 1.0 IS A SPECIAL SIGNAL FOR
+C          HALO TO 'TURN OFF' THE VIEWPORT WHICH DOES NOT RESET ASPECT RATIOS
+C **DEBUG 3-29-94
+      IF (SCRNASP.EQ.0) THEN
+         CALL INQASP(SCRNASP)
+         DEVASP=SCRNASP
+      ENDIF   
+      CALL SETVIE(0.,0.,0.999,0.999,-1,-1)
+      CALL SETWOR(0.,0.,1.,1.)
+C **DEBUG 3-28-94
+      CALL INQASP(VPWASP)
+C **DEBUG      
+      WRITE(999,*)'#########BGNAHLO SCRNASP,VPWASP=',SCRNASP,VPWASP
+      RETURN
+C
+C       ** ERROR PROCESSING
+C
+  900 CONTINUE
+C       .. ERROR:  UNABLE TO FIND HALO ENVIRONMENT FILE -- HALOGRF?.ENV --
+      CALL WRTMSG(3,601,12,1,1,' ',0)
+  990 CONTINUE      
+      STOP 1       
+      END
+      
+      SUBROUTINE FINHALO
+      COMMON/DEVHNDL/IHNDLSCR,IHNDLVRI,SCRNASP,VRIASP,DEVASP
+      INTEGER*2 NPORT
+      CHARACTER*1 NULL
+      DATA NPORT/0/      
+      NULL = CHAR(0)
+      CALL SETLOC(NULL,NPORT)
+      CALL SETADE(IHNDLSCR)
+      CALL CLOSEG
+      IF (IHNDLVRI.GT.0) THEN
+         CALL SETADE(IHNDLVRI)
+         CALL CLOSEG
+      ENDIF
+      RETURN
+      END
+*************************************************************************
+      SUBROUTINE CKHALOER(ITXT,ERRTXT,IER)
+C
+C        **INPUT:
+C            ITXT......FLAG TO INDICATE THE METHOD TO OUTPUT ERROR MESSAGE
+C                         0=RETURN ERROR NUMBER; DO NOT PRINT MESSAGE
+C                         1=PRINT MESSAGE IN TEXT MODE
+C                         2=PRINT MESSAGE IN GRAPHICS MODE
+C            ERRTXT....TEXT TO BE ADDED TO ERROR MESSAGE
+C       **OUTPUT:
+C            IER.......HALO ERROR; O INDICATES NO ERROR
+C
+      INTEGER*2 ITXT,IER
+      CHARACTER*(*) ERRTXT
+C
+      PARAMETER     (NCHALO=40)
+      CHARACTER*(NCHALO)  MSGTXT
+      CHARACTER*2   INCHAR
+      INTEGER*2     IDXERR(61)
+      DATA IDXERR/195,195,195,195,195,195,634,634,195,639,
+     +            196,195,191,195,198,197,195,195,195,522, 
+     +            519,523,524,194,194,194,194,194,194,638, 
+     +            638,628,637,635,635,194,194,634,194,195, 
+     +            195,195,195,195,195,195,195,195,195,195, 
+     +            195,195,195,195,195,195,195,195,195,635,636/
+      DATA XLL/0.02/,YLL/0.98/
+C
+      IER = 0
+      CALL INQERR(IFCN,IER)
+      IF (IER.NE.0) THEN
+         MSGTXT = ' '
+         NCH = MIN0(LNG(ERRTXT),NCHALO-14)
+         WRITE(MSGTXT,500) ERRTXT(1:NCH),IER,IFCN
+  500    FORMAT(A,' [HALO',I3,I4,']')       
+         NCH = LNG(MSGTXT)
+         NMSG = IDXERR(IER)
+         IF (ITXT.EQ.1) THEN
+            CALL WRTMSG(4,NMSG,4,1,1,MSGTXT,NCH)
+         ELSE   
+            CALL GRAFNOTE(XLL,YLL,NMSG,202,MSGTXT,NCH,INCHAR)
+         ENDIF   
+      ENDIF   
+      RETURN
+      END           
+*************************************************************************
+      SUBROUTINE SETACTPR(PRDRVR,PRATRB,PRASP,IER)
+C
+      CHARACTER*(*) PRDRVR
+      INTEGER*2     PRATRB(0:*)      
+C
+$INCLUDE:'GRFPARM.INC'
+$INCLUDE:'GRAFVAR.INC'
+      INTEGER*2    PATTR(0:63)
+      COMMON/DEVHNDL/IHNDLSCR,IHNDLVRI,SCRNASP,VRIASP,DEVASP
+C      
+      LOGICAL      BWREV
+      CHARACTER*1 NULL
+      NULL = CHAR(0)
+C   
+C **DEBUG
+        WRITE(999,*)'###############SETACTPR--PRDRVR=',PRDRVR,'-'
+      CALL SETPRN(NULL)
+      CALL CKHALOER(1,'SETPRN-NULL',IER)
+      CALL SETPRN(PRDRVR)
+      CALL CKHALOER(1,PRDRVR,IER)
+      IF (IER.NE.0) GO TO 200
+C      
+C       .. CALCULATE THE HEIGHT OF THE OUTPUT IN DOTS
+      CALL INQDRA(MX,MY)
+C      CALL INQASP(ASP)
+      XD=MX+1
+      YD=MY+1
+C **DEBUG
+C      PRATRB(1) = (FLOAT(PRATRB(0))*PRASP*YD)/(XD*DEVASP)
+      PRATRB(1) = (FLOAT(PRATRB(0))*PRASP*YD)/(XD*SCRNASP)
+C **DEBUG
+      WRITE(999,*)'XD,YD,DEV/SCRNASP=',XD,YD,DEVASP,SCRNASP
+      WRITE(999,*)'PRASP,PRATRB 0,1=',PRASP,PRATRB(0),PRATRB(1)
+      WRITE(999,*)'###################END SETACTPR'
+C      
+      DO 20 I=0,26
+         PATTR(I) = PRATRB(I)
+   20 CONTINUE   
+C   
+      BWREV = PATTR(3).LE.0
+      IF (BWREV) PATTR(3)=1
+C      
+      DO 25 I=27,63
+         PATTR(I)=-1
+   25 CONTINUE      
+      CALL SETPAT(PATTR)
+      CALL CKHALOER(1,'SETPAT',IER)
+      IF (IER.NE.0) GO TO 200
+      CALL DEFPPAL(PALDEF(1,PALETTE),BWREV,IER)
+C
+  200 CONTINUE      
+      RETURN
+      END
+

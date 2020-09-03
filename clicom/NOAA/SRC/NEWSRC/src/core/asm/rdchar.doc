@@ -1,0 +1,11 @@
+
+
+ASSEMBLY SUBROUTINE:  RDCHAR.ASM
+
+The NEW subroutine Assembly RDCHAR.ASM reads the characters and its attribute
+at the current cursor position.  This subroutine will replace the subroutine
+QRTEXT that was used in FORTRAN programs DEFFROM.FOR and DEFSCRN.FOR in CLICOM 
+version 2.5 and 3.0.   The subroutine QRTEXT was original from the GRAFMATIC
+Library (Scientific/Engineering) Graphics.
+
+

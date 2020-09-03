@@ -1,0 +1,15 @@
+This routine allows the user to specify the level of
+detail that is defined by the replacement map.
+
+Each of the detail categories allowed is shown in the menu. 
+The user specifies the level of detail by selecting the
+appropriate menu choice (coastlines, rivers, borders,
+lakes/islands, and states).
+
+NOTE:  State borders are only available for areas in the
+       Western hemisphere.
+
+
+This is help file DTLREPMP.HLP, and is called from the 
+REPLMAP program.
+

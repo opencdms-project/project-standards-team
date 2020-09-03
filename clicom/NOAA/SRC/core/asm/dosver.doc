@@ -1,0 +1,17 @@
+;******************************************************************************
+;			PROCEDURE DOSVER
+;
+;	Calling Language: MICROSOFT FORTRAN
+;
+;	Parameters: INTEGER*2  MAJVER,MINVER
+;
+;	DESCRIPTION: Uses DOS Function Number 30h to retrieve the current DOS
+;		     version and passes the version number back to the calling 
+;		     program as two integers.
+;******************************************************************************
+
+
+C EXAMPLE CALL
+
+      CALL DOSVER(MAJVER,MINVER)
+      

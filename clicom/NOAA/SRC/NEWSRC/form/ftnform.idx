@@ -1,0 +1,66 @@
+ANNPLOTA ANNPLOT ADDED FOR 10DEXTR       
+AQC2FLDS Area-QC banner for MLY and 10D  
+AQC3FLDS Area-QC banner for Daily data   
+AQC4FLDS Area-QC banner for HLY, SYN, 15M
+BNR3FLDS Key-entry banner for MLY and 10D
+BNR4FLDS Key-entry banner for DLY data   
+BNR5FLDS Key-entry banner for HLY,SYN,15M
+BNR6FLDS Key-entry banner for upper air  
+CFGPRNT1 Printer configuration 1 of 2    
+CFGPRNT2 Printer configuration 2 of 2    
+CNTRLEVL Contour Intervals               
+CORR2GRP CORR2 - Element and group select
+DEFFORM1 Define form height,width,border 
+DEFMENUS Define menus                    
+FRM-ARCH Specify data to retrieve        
+GET110DA Select stations, 1 time, 10D    
+GET115MA Select stations, 1 time, 15M    
+GET1DAYA Select stations, 1 Day, DLY data
+MRGDUPID MRGTWF-process duplicate records
+GET1LIMA Select one station--year range  
+GET1MONA Select one station by year      
+GETLIM10 Select many stations 10D data   
+GETLIM15 Select many stations 15M data   
+GETLIMAA Select many stations by month   
+GETLIMDY Select many stations DLY data   
+GETLIMHR Select many stations HLY        
+GETLIMMY Select many stations MLY data   
+GETMLIMA Select stations, 1 month, MLY   
+MRGTWFIO Get key entry files to merge    
+GRFOPTMP Graph option control - map      
+GRFOPTSK Graph option control - sounding 
+ELEMEXTR Warning text for ELEMEXTR       
+GRFOPTTS Graph option control-time series
+GRFOPTWR Graph option control - windrose 
+HALOPRN1 Graphics Printer Configuration-1
+HALOPRN2 Graphics Printer Configuration-2
+HALOPRN3 Graphics Printer Configuration-3
+REFMTAUT Reformat DSD dates -- automatic 
+GETLIMSY Select many stations SYN        
+GET1SYNA Select stations, 1 time, SYN    
+IMPORT1A Specify selection info for imprt
+LD3FLDSA Load data banner for MLY,10D    
+LD5FLDSA Load banner for DLY through U-A 
+MAPCOORD Define map coordinates          
+PACKTWFA Solicits Dataset ID number      
+QCMAPSAA Link maps with datasets         
+SETUPELM Define elements for key-entry   
+SETUPQCE Define elements for area-QC     
+SETUPSTD Define statistical limits for QC
+TO-ARCHA Specify data to write to archive
+GET1HLYA Select stations, 1 time, HLY    
+UNLDATAA Select data for DataEase -> QC  
+WRTBAN3F Read only version of BNR3FLDS   
+WRTBAN4F Read only version of BNR4FLDS   
+WRTBAN5F Read only version of BNR5FLDS   
+WRTBAN6F Read only version of BNR6FLDS   
+REFMTDSD Reformat DSD date -- verify     
+******** THIS RECORD DELETED             
+******** THIS RECORD DELETED             
+******** THIS RECORD DELETED             
+******** THIS RECORD DELETED             
+******** THIS RECORD DELETED             
+HALOPRNA HALO PRINTER OPTIONS PART 1     
+HALOPRNB HALO PRINTER OPTIONS PART 2     
+PRNLSTWF List or print of key-entry file 
+LSTKEFRM Select drive and path to list KE
