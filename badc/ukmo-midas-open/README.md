@@ -1,6 +1,26 @@
+The `ukmo-midas-open` directory in this repository contains sample data for Bracknell Beaufort Park in 1991. These data are licensed under the UK's Open Government Licence:
+ 
+    © British Crown copyright, 2018.
+    
+    You may use and re-use the information featured in this repository (not including logos) free of 
+    charge in any format or medium, under the terms of the Open Government Licence
+        http://reference.data.gov.uk/id/open-government-licence
+    We encourage users to establish hypertext links to this website.
+    
+    Any email enquiries regarding the use and re-use of this information resource should be 
+    sent to: psi@nationalarchives.gsi.gov.uk.
+
+
+| src_id  | Station name              | Area      | Area type | Station start date  | Station end date | Latitude | Longitude | Postcode |
+|---------|---------------------------|-----------|-----------|---------------------|------------------|----------|-----------|----------|
+| [838] | BRACKNELL: BEAUFORT PARK  | BERKSHIRE | COUNTY    | 1965-01-01          | 2003-06-30       | 51.3898  | -0.784    | RG11 3   |
+
+[838]: http://archive.ceda.ac.uk/cgi-bin/midas_stations/station_details.cgi.py?idstring=838
+
+
 ## 00838_bracknell-beaufort-park
 
-All datasets are available for 1991-1996.
+The table below shows that data is available for all datasets simulateously during the period 1991-1996. This repository currently contains data for 1991.
 
 
 | Dataset                  | Range     | Remote     | Local    | Local filename |
