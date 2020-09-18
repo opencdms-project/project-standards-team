@@ -1,3 +1,8 @@
+## 00838_bracknell-beaufort-park
+
+All datasets are available for 1991-1996.
+
+
 | Dataset                  | Range     | Remote     | Local    | Local filename |
 |--------------------------|-----------|------------|----------|----------------|
 | uk-daily-rain-obs        | 1971-1996 | [/][rdr]   | [/][ldr] | [midas-open_uk-daily-rain-obs_dv-201908_berkshire_00838_bracknell-beaufort-park_qcv-1_1991.csv][ldr91] |
