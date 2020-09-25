@@ -1,4 +1,6 @@
-The `ukmo-midas-open` directory in this repository contains sample data for Bracknell Beaufort Park in 1991. These data are licensed under the UK's Open Government Licence:
+The `ukmo-midas-open` directory in this repository contains sample data for
+Bracknell Beaufort Park in 1991. These data are licensed under the UK's
+[Open Government Licence](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/):
  
     © British Crown copyright, 2018.
     
