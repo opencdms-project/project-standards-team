@@ -12,6 +12,8 @@ Bracknell Beaufort Park in 1991. These data are licensed under the UK's
     Any email enquiries regarding the use and re-use of this information resource should be 
     sent to: psi@nationalarchives.gsi.gov.uk.
 
+**Citable as:** MIDAS Open: UK Land Surface Stations Data (1853-current). Centre for Environmental Data Analysis, date of citation.
+http://catalogue.ceda.ac.uk/uuid/dbd451271eb04662beade68da43546e1
 
 | src_id  | Station name              | Area      | Area type | Station start date  | Station end date | Latitude | Longitude | Postcode |
 |---------|---------------------------|-----------|-----------|---------------------|------------------|----------|-----------|----------|
