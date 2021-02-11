@@ -23,16 +23,17 @@ The following summaries are taken from ([WMO 2007](#wmo_2007)).
 **Advantages:** It is easy to add new elements; the data model remains the same even if a new element is added.\
 **Disadvantages:** Performance for real-time applications may be poor; many operations on the database can be more complex than would otherwise be the case.
 
-## Observation Model
+### Observation Model
 
 | Station’s ID | Day/Month/Year | Tmin | Tmax | Rain | Min Humidity | Min MSL Pressure | Max Wind Speed | … | … | Max Wind Direction |
+|--------------|----------------|------|------|------|--------------|------------------|----------------|---|---|--------------------|
 | 33220        | 01/01/2002     | 24.5 | 33.4 | 0    | 72           | 1015.6           | 2.2            | … | … | 160                |
 | 42500        | 01/01/2003     | 15.2 | 22.3 | 10.2 | 80           | 1013.4           | 3.3            | … | … | 210                |
 
 **Advantages:** High performance for real-time applications; optimisation of data storage.\
 **Disadvantages:** Need to update the table structure if a new element that has not been included during the database design stage has to be added.
 
-## Value Model
+### Value Model
 
 | Station’s ID | Time       |Element | Value |
 |--------------|------------|--------|-------|
@@ -45,4 +46,6 @@ The following summaries are taken from ([WMO 2007](#wmo_2007)).
 
 ## References
 
-<span id="wmo_2007">WMO (2007) Guidelines on climate data management. WMO/TD- No. 1376. WMO Geneva</span> [🔗](https://library.wmo.int/index.php?lvl=notice_display&id=16656)
+<span id="wmo_2007">[WMO (2007)](https://library.wmo.int/index.php?lvl=notice_display&id=16656) Guidelines on climate data management. WMO/TD- No. 1376. WMO Geneva</span>\
+<span id="wmo_2014">[WMO (2014)](https://library.wmo.int/index.php?lvl=notice_display&id=16300) Climate Data Management System Specifications. WMO-No. 1131. WMO Geneva</span>\
+<span id="wmo_2019">[WMO (2019)](https://library.wmo.int/?lvl=notice_display&id=21440) World Meteorological Congress. Abridged Final Report of the Eighteenth Session. WMO-No. 1236, res. 22 p88. WMO Geneva</span>
