@@ -128,9 +128,10 @@ Before making final recommendations for next generation climate data models, we 
 
 ## References
 
-<span id="wmo_2007">[WMO (2007)](https://library.wmo.int/index.php?lvl=notice_display&id=16656) Guidelines on climate data management. WMO/TD- No. 1376. WMO Geneva</span>\
-<span id="wmo_2014">[WMO (2014)](https://library.wmo.int/index.php?lvl=notice_display&id=16300) Climate Data Management System Specifications. WMO-No. 1131. WMO Geneva</span>\
-<span id="wmo_2019">[WMO (2019)](https://library.wmo.int/?lvl=notice_display&id=21440) World Meteorological Congress. Abridged Final Report of the Eighteenth Session. WMO-No. 1236, res. 22 p88. WMO Geneva</span>
+<span id="wmo_2007">[WMO (2007)](https://library.wmo.int/index.php?lvl=notice_display&id=16656) Guidelines on climate data management. *WMO/TD- No. 1376*. WMO Geneva</span>\
+<span id="wickham_2014">[Wickham, Hadley (2014)](https://www.jstatsoft.org/article/view/v059i10) Tidy Data. *Journal of Statistical Software 59*(10)</span>\
+<span id="wmo_2014">[WMO (2014)](https://library.wmo.int/index.php?lvl=notice_display&id=16300) Climate Data Management System Specifications. *WMO-No. 1131*. WMO Geneva</span>\
+<span id="wmo_2019">[WMO (2019)](https://library.wmo.int/?lvl=notice_display&id=21440) World Meteorological Congress. Abridged Final Report of the Eighteenth Session. *WMO-No. 1236, res. 22 p88*. WMO Geneva</span>
 
 <!--
 
