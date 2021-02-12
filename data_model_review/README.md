@@ -1,5 +1,15 @@
 # Climate Data Management Systems - Data Model Review
 
+## Introduction
+
+Historically, a Climate Data Management System (CDMS) has been defined as "an integrated computer-based system that facilitates the effective archival, management, analysis, delivery and utilization of a wide range of integrated climate data" (WMO 2014).
+
+> Discussion of the future – to include reference to Earth Systems Approach (WMO 2019) and Reference Implementation.
+
+The `opencdms-data-model` repository contains physical data models for multiple systems. Physical models are defined in terms of the specific database management systems that has been used for implementation. Database schema described in SQL Data Definition Language (DDL)
+
+This report focuses on existing data models, focusing on systems that are in PRODUCTION USE IN NMHSs and are OpenCDMS focus systems
+
 ## Data model types
 
 The WMO Guidelines on climate data management ([WMO 2007](#wmo_2007)) establish three data model types that can be used to classify the approach taken in CDMS implementations.
@@ -43,6 +53,32 @@ The following summaries are taken from ([WMO 2007](#wmo_2007)).
 
 **Advantages:** It is easy to add new elements, the model is adaptable to a large range of data types.\
 **Disadvantages:** Optimization of data storage will not be done well, so this approach is not suitable for tables with huge amounts of data; also shares the disadvantages of the Element model.
+
+## Focus systems
+
+The `opencdms-data-model` repository currently contains database schemas and documentation for CliDE, Climsoft, MCH and MIDAS. Documentation is also available for BDCLIM.
+
+In addition, further work is being undertaken by the OpenCDMS Reference Implementation Working Group to review a wider range of existing systems.
+
+## Interoperability
+
+## Recommendations
+
+-	ongoing research to evaluate approaches – including assessment of components of the WMO CDMS specifications that require provisions to be present within data models (FUTURE)
+-	work on a reference implementation data model that incorporates current best practices (FUTURE)
+
+Top-down RI data model design begins with conceptual data model defining what the systems contains, followed by logical data model defining how the system should be implemented (regardless of the specifics of the physical implementation).
+<!--
+  https://en.wikipedia.org/wiki/Data_model#Three_perspectives
+  https://en.wikipedia.org/wiki/Data_model#Entity-relationship_model
+  https://www.tutorialspoint.com/dbms/dbms_data_models.htm
+  https://www.guru99.com/data-modelling-conceptual-logical.html
+  Entity relationship model vs UML
+-->
+
+The OpenCDMS Project Technical Team recommend following a Domain Driven Design (DDD) approach to the creation of the Reference Implementation data model to ensure that the terminology used in the Reference Implementation matches the language of the domain.
+<!-- https://stackoverflow.com/questions/3835169/uml-domain-modeling/3835214#comment4077822_3835214 -->
+
 
 ## References
 
