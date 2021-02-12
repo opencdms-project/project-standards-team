@@ -1,10 +1,11 @@
-# Climate Data Management Systems - Data Model Review
+    Climate Data Management Systems
+# Data Model Review: OpenCDMS Focus Systems
 
 ## Introduction
 
 Historically, a Climate Data Management System (CDMS) has been defined as "an integrated computer-based system that facilitates the effective archival, management, analysis, delivery and utilization of a wide range of integrated climate data" (WMO 2014).
 
-> Discussion of the future – to include reference to Earth Systems Approach (WMO 2019) and Reference Implementation.
+> Broader discussion to include GCOS definition of climate variables, reference to WMO Earth Systems Approach (WMO 2019), CDMS Specifications and OpenCDMS Reference Implementation.
 
 The `opencdms-data-model` repository contains physical data models for multiple systems. Physical models are defined in terms of the specific database management systems that has been used for implementation. Database schema described in SQL Data Definition Language (DDL)
 
@@ -58,9 +59,49 @@ The following summaries are taken from ([WMO 2007](#wmo_2007)).
 
 The `opencdms-data-model` repository currently contains database schemas and documentation for CliDE, Climsoft, MCH and MIDAS. Documentation is also available for BDCLIM.
 
+CliDE, Climsoft and MCH are all CDMS solutions that are used extensively in developing countries. It is essential for the OpenCDMS project to support these projects and their users where possible. MIDAS is a custom CDMS developed and used by the UK Met Office. The system is of particular interest to OpenCDMS because extensive datasets, with rich and complete metadata, are available as open data.
+
 In addition, further work is being undertaken by the OpenCDMS Reference Implementation Working Group to review a wider range of existing systems.
 
+## Data ingestion and utilization
+
+> Long vs wide, Key entry forms, Analysis
+
+[#10](https://github.com/opencdms/opencdms-data-model/issues/10) discussion of normalization, optimization for common scenarios and analysis that requires "tidy data"
+<!-- 3rd normal form? -->
+
+## Date period
+
+[#11](https://github.com/opencdms/opencdms-data-model/issues/11)
+
+## Primary keys and indexing 
+
+[#9](https://github.com/opencdms/opencdms-data-model/issues/9)
+
+Composite natural keys vs synthetic keys.
+
+<!--The web: RESTful APIs and Object Relational Mapping (ORM) use of unique (single) keys. -->
+
+## Dynamic schema modifications
+
+[#7](https://github.com/opencdms/opencdms-data-model/issues/7)
+
+MCH allows variations in the database definition. Example include:
+
+a) Support for table and field names in multiple languages (e.g., Spanish and English)
+b) Creation of a set of new database tables for each new parameter that is added
+
 ## Interoperability
+
+<!--
+
+From 2020 report: Figure 4 illustrates the process of achieving interoperability among supported systems and also gives a feeling for the magnitude and complexity of the task. For example, the definition and use of “Station Name” varies between solutions and a formal definition of “station/platform name” existing in the WIGOS metadata standard.
+
+See also: Python Jupyter notebook example of filtering
+
+-->
+
+
 
 ## Recommendations
 
@@ -79,9 +120,35 @@ Top-down RI data model design begins with conceptual data model defining what th
 The OpenCDMS Project Technical Team recommend following a Domain Driven Design (DDD) approach to the creation of the Reference Implementation data model to ensure that the terminology used in the Reference Implementation matches the language of the domain.
 <!-- https://stackoverflow.com/questions/3835169/uml-domain-modeling/3835214#comment4077822_3835214 -->
 
+### Research Questions
+
+Before making final recommendations for next generation climate data models, we propose a number of research questions that must be investigated:
+- Flexibility vs efficiency – measure the implication of the transposing data stored in “long format”
+- Time series data retrieval, with and without hypertables (research must already exist)
 
 ## References
 
 <span id="wmo_2007">[WMO (2007)](https://library.wmo.int/index.php?lvl=notice_display&id=16656) Guidelines on climate data management. WMO/TD- No. 1376. WMO Geneva</span>\
 <span id="wmo_2014">[WMO (2014)](https://library.wmo.int/index.php?lvl=notice_display&id=16300) Climate Data Management System Specifications. WMO-No. 1131. WMO Geneva</span>\
 <span id="wmo_2019">[WMO (2019)](https://library.wmo.int/?lvl=notice_display&id=21440) World Meteorological Congress. Abridged Final Report of the Eighteenth Session. WMO-No. 1236, res. 22 p88. WMO Geneva</span>
+
+<!--
+
+Bannerman, B and Palmer, S (2015) Open-CDMS Roadmap. Australian Bureau of Meteorology
+Fowler, M (2010) Utility Vs Strategic Dichotomy 29 July 2010. Retrieved from https://www.martinfowler.com/bliki/UtilityVsStrategicDichotomy.html
+Fowler, M (2019) Refactoring: Improving the Design of Existing Code. Addison-Wesley Professional; 2 edition 
+Gentile, G (2012) Counterinsurgency and War. In: Lindley-French, J and Boyer Y (eds) The Oxford Handbook of War. Oxford University Press
+Haase M. et al. (2018) Hydrometeorological Time Series Management—A Case Study from the Western Balkans. In: Bungartz HJ., Kranzlmüller D., Weinberg V., Weismüller J., Wohlgemuth V. (eds) Advances and New Trends in Environmental Informatics. Progress in IS. Springer, Cham
+Martin, D. J. et. al. (2015) Development and implementation of a climate data management system for western Pacific small island developing states.  Meteorological Applications 22: 273–287
+Stuber, D et. al. (2011) Climate Data Management Systems: status of implementation in developing countries. Climate Research, Vol. 47: 13–20
+Tandy, J (2017) Spatial Data on the Web Best Practices. OGC 15-107. Open Geospatial Consortium
+WMO (1986) CLICOM Project: Climate Data Management System. WMO/TD- No. 131; WCP- No. 119. WMO Geneva
+WMO (1999) Report of the training seminar on Climate Data Management focusing on CLICOM/CLIPS development and evaluation. WMO/TD-No.973. WMO Geneva
+
+WMO (2015) Meeting of the CCl Expert Team Climate Data Management Systems (ET-CDMS). Final Report, Annex 4. WMO Geneva
+WMO (2018) Commission for Climatology. Abridged Final Report of the Seventeenth Session. WMO-No. 1216, resolution 4 page 12. WMO Geneva
+WMO (2019a) Climsoft – MCH co-ordination meeting Outcome Report. WMO Geneva.
+WMO (2019b) World Meteorological Congress. Abridged Final Report of the Eighteenth Session. WMO-No. 1236, resolution 22 page 88. WMO Geneva
+Wright, W (2019) Co-chair on Data - Commission for Climatology, WMO. Personal Communication 18th November 2019
+
+-->
