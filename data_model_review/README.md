@@ -3,7 +3,7 @@
 
 ## Introduction
 
-Historically, a Climate Data Management System (CDMS) has been defined as "an integrated computer-based system that facilitates the effective archival, management, analysis, delivery and utilization of a wide range of integrated climate data" (WMO 2014).
+Historically, a Climate Data Management System (CDMS) has been defined as "an integrated computer-based system that facilitates the effective archival, management, analysis, delivery and utilization of a wide range of integrated climate data" ([WMO 2014](#wmo_2014)).
 
 > Broader discussion to include GCOS definition of climate variables, reference to WMO Earth Systems Approach (WMO 2019), CDMS Specifications and OpenCDMS Reference Implementation.
 
@@ -70,6 +70,8 @@ In addition, further work is being undertaken by the OpenCDMS Reference Implemen
 [#10](https://github.com/opencdms/opencdms-data-model/issues/10) discussion of normalization, optimization for common scenarios and analysis that requires "tidy data"
 <!-- 3rd normal form? -->
 
+([Wickham 2014](#wickham_2014))
+
 ## Date period
 
 [#11](https://github.com/opencdms/opencdms-data-model/issues/11)
@@ -93,15 +95,19 @@ b) Creation of a set of new database tables for each new parameter that is added
 
 ## Interoperability
 
-<!--
+![Mappings](https://raw.githubusercontent.com/opencdms/opencdms-data-model/master/data_model_review/images/field_mappings.png)
+*Figure:* Illustration of the process of achieving interoperability among supported systems
 
-From 2020 report: Figure 4 illustrates the process of achieving interoperability among supported systems and also gives a feeling for the magnitude and complexity of the task. For example, the definition and use of “Station Name” varies between solutions and a formal definition of “station/platform name” existing in the WIGOS metadata standard.
+The definition and use of "Station Name" varies between solutions and the formal definition of "station/platform name" existing in the WIGOS metadata standard.
 
-See also: Python Jupyter notebook example of filtering
-
--->
-
-
+```
+filters = {
+    'src_id': 838,
+    'period': 'hourly',
+    'year': 1991,
+    'elements': ['wind_speed', 'wind_direction'],
+}
+```
 
 ## Recommendations
 
@@ -116,6 +122,13 @@ Top-down RI data model design begins with conceptual data model defining what th
   https://www.guru99.com/data-modelling-conceptual-logical.html
   Entity relationship model vs UML
 -->
+
+### Hypertables
+
+![Hypertable](https://raw.githubusercontent.com/opencdms/opencdms-data-model/master/data_model_review/images/timescaledb_hypertable_chunk.png)
+*Figure:* TimescaleDB uses the "hypertable" abstraction as a virtual view of many individual tables holding the data, called chunks.
+
+### Domain Driven Design
 
 The OpenCDMS Project Technical Team recommend following a Domain Driven Design (DDD) approach to the creation of the Reference Implementation data model to ensure that the terminology used in the Reference Implementation matches the language of the domain.
 <!-- https://stackoverflow.com/questions/3835169/uml-domain-modeling/3835214#comment4077822_3835214 -->
