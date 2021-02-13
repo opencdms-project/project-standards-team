@@ -89,9 +89,11 @@ Data arrangement is important for data processing and analysis.
 
 An simple example would be the creation of a windrose plot where, for each time and location, both wind speed and wind direction are needed. If the data is arranged as per the observation model as "tidy data" then the analysis is more straight-forward for the user.
 
-## Date period
+## Date period <!-- and partial dates-->
 
 [#11](https://github.com/opencdms/opencdms-data-model/issues/11)
+
+
 
 ## Primary keys and indexing 
 
@@ -158,9 +160,9 @@ Discussion of normalization, optimization for common scenarios
 3rd normal form?
 -->
 
-### Hypertables
+#### Hypertables
 
-MCH makes use of manual partitioning by creating a separate observations table for each element. All data is still held in the same database instance, but split into separate tables. For some installations this may have performance benefits due to the reduction in index size in each table, which in turn results in improved search performance.
+MCH makes use of manual partitioning by creating a separate observations table for each element. All data is still held in the same database instance, but split into separate tables. For some installations this may have performance benefits due to the reduction in index size in each table, which in turn results in improved search performance. Other systems 
 
 However, in a time-series databases where indexing through time is essential, only partitioning the data into a relative small number of different variables would not be as effective as using a solution that partitions based on observation time (and optionally other values).
 
@@ -171,12 +173,12 @@ However, in a time-series databases where indexing through time is essential, on
 Like database sharding, hypertable partitioning allows the database to scale-out across multiple nodes.
 <!-- however, also allows elasticity, reordering, tiering, ... https://blog.timescale.com/blog/building-a-distributed-time-series-database-on-postgresql/ -->
 
-### Domain Driven Design
+#### Domain Driven Design
 
 The OpenCDMS Project Technical Team recommend following a Domain Driven Design (DDD) approach to the creation of the Reference Implementation data model to ensure that the terminology used in the Reference Implementation matches the language of the domain.
 <!-- https://stackoverflow.com/questions/3835169/uml-domain-modeling/3835214#comment4077822_3835214 -->
 
-### Research Questions
+## Research Questions
 
 Before making final recommendations for next generation climate data models, we propose a number of research questions that must be investigated:
 - Flexibility vs efficiency – measure the implication of the transposing data stored in “long format”
@@ -209,3 +211,262 @@ WMO (2019b) World Meteorological Congress. Abridged Final Report of the Eighteen
 Wright, W (2019) Co-chair on Data - Commission for Climatology, WMO. Personal Communication 18th November 2019
 
 -->
+
+## Annex A: Summary of database tables
+
+#### CliDE
+
+The following table lists the tables found in a a typical installation of CliDE
+
+| Table name | Description |
+|------------|-------------|
+|codes_simple|List of codes used in CliDE|
+|datums|Geodetic datums|
+|equipment|Stores equipment master information.|
+|station_types|Stores allowed values for stations.type_id|
+|obs_aero|METAR / SPECI Aero message observations|
+|obs_aws|AWS observations|
+|obs_daily|Daily surface observations|
+|obs_subdaily|Sub Daily surface observations|
+|obs_monthly|Stores monthly data not available as daily or subdaily|
+|obs_subdaily_cloud_layers|Sub Daily surface observations|
+|obs_subdaily_soil_temps|Sub Daily surface observations|
+|obs_upper_air|Upper Air observations|
+|station_audit|Audit trail of all changes to station Station.|
+|station_audit_types|Stores allowed values for station_audit.type_id|
+|stations|Stores station data.|
+|station_class|Stores contacts (people) for station|
+|station_equipment|Stores equipment installed at station.|
+|land_use|Stores allowed values for stations.soil_type_id|
+|soil_types|Stores allowed values for stations.soil_type_id|
+|station_countries|Stores countries that stations can belong to.|
+|station_status|Stores allowed values for stations.status_id|
+|station_timezones|Stores time zone that stations can be in.|
+|surface_types|Stores allowed values for stations.surface_type_id|
+|gui_users|User data for web GUI|
+|ingest_monitor|Stores file ingestion stats for data ingests|
+|key_settings|Stores key entry settings: Default units, disable flag|
+|obs_audit|Audit trail of all changes to station Station.|
+|obs_averages|Normals and other monthly long term averages of observations.|
+|obs_clicom_element_map|Mapping Clicom Codes to CLDB table, column|
+|obscodes_cloud_amt_conv|Cloud Amount conversions|
+|obscodes_cloud_conv_1677|Cloud Height conversions for WMO 1677|
+|obscodes_cloud_ht_conv|Cloud Height conversions|
+|obscodes_cloud_type_conv|Cloud Type conversions|
+|obscodes_visibility|Visibility conversions: Aero, non-Aero, Km, yards. WMO 4300|
+|obscodes_wind_dir|Wind Direction conversions: Compass points to degrees|
+|obscodes_wind_speed|Wind speed conversions: Beaufort, m/s, knots|
+|obscodes_wx|WMO Code 4677 (WX codes)|
+|obsconv_factors|WMO Code 4677 (WX codes)|
+|pivot|Utility table of sequential integers|
+|spatial_ref_sys|Spatial reference system definitions from PostGIS|
+|station_contacts|Stores contacts (people) for station|
+|station_files|Stores address of files such as images, pdfs, Word docs, etc. for station.|
+|timezone_diffs|Stores timezone differences due to daylight savings|
+|user_sessions|Stores User session information|
+
+#### Climsoft 4
+
+The following table lists the primary tables found in a a typical installation of Climsoft 4.
+
+> Update (February 2021): The Climsoft team are currently in the process of adding table descriptions.
+
+| Table name | Description |
+|------------|-------------|
+|abc||
+|acquisitiontype||
+|aws1||
+|aws_basestation||
+|aws_elements||
+|aws_lsi||
+|aws_lsi1||
+|aws_malawi1||
+|aws_malawi12||
+|aws_mss||
+|aws_process_parameters||
+|aws_rema1||
+|aws_rwanda1||
+|aws_rwanda4||
+|aws_rwanda_rain||
+|aws_sasscal1||
+|aws_sites||
+|aws_stations||
+|aws_structures||
+|aws_tahmo||
+|aws_test||
+|aws_toa5_bw1||
+|aws_toa5_mg2||
+|bufr_crex_data||
+|bufr_crex_master||
+|bufr_indicators||
+|ccitt||
+|climsoftusers||
+|code_flag||
+|data_forms||
+|faultresolution||
+|featuregeographicalposition||
+|flags||
+|flagtable||
+|form_agro1||
+|form_daily2||
+|form_hourly||
+|form_hourlywind||
+|form_hourly_time_selection||
+|form_monthly||
+|form_synoptic2_tdcf||
+|form_synoptic_2_ra1||
+|gaps||
+|instrument||
+|instrumentfaultreport||
+|instrumentinspection||
+|language_translation||
+|missing_data||
+|missing_stats||
+|obselement||
+|observationfinal||
+|observationinitial||
+|observationschedule||
+|obsscheduleclass||
+|paperarchive||
+|paperarchivedefinition||
+|physicalfeature||
+|physicalfeatureclass||
+|qcabslimits||
+|qcstatusdefinition||
+|qctype||
+|qc_interelement_1||
+|qc_interelement_2||
+|qc_interelement_relationship_definition||
+|regkeys||
+|routinereportdefinition||
+|routinereporttransmission||
+|seq_daily_element||
+|seq_day||
+|seq_element||
+|seq_hour||
+|seq_leap_year||
+|seq_month||
+|seq_monthly_element||
+|seq_month_day||
+|seq_month_day_element||
+|seq_month_day_element_leap_yr||
+|seq_month_day_leap_yr||
+|seq_month_day_synoptime||
+|seq_month_day_synoptime_leap_yr||
+|seq_year||
+|ss||
+|station||
+|stationelement||
+|stationidalias||
+|stationlocationhistory||
+|stationnetworkdefinition||
+|stationqualifier||
+|synopfeature||
+|tblproducts||
+|tdcf_indicators||
+|testing_aws||
+|testing_aws1||
+|tm_307073||
+|tm_307080||
+|tm_307081||
+|tm_307082||
+|tm_307083||
+|tm_307084||
+|tm_307086||
+|tm_307089||
+|tm_307091||
+|tm_307092||
+|tm_309052||
+|userrecords||
+
+#### MCH
+
+The following table lists the tables found in a a typical installation of MCH
+
+| Table names | Description |
+|-------------|-------------|
+|Codes||
+|Basins||
+|Definiclineascontorno||
+|DisponibDD||
+|Estacautoma||
+|stations||
+|estacionesinstrum||
+|metadatastations||
+|states||
+|Ftpbitacproc||
+|regManager||
+|StationGroups||
+|TimeZones||
+|Isolinbitac||
+|Logbitacproc||
+|Maps||
+|MapasCroquis||
+|mapsstations||
+|MapasGenxCoord||
+|mapsgroups||
+|MapasMchxCoord||
+|Mapaspixelgeogr||
+|Mapaspixelgeogr4||
+|mapasbycoord||
+|Mapasxcoordclrs||
+|Mapasxcoordgeogr||
+|Mapasxcoordzonas||
+|MensajesMetar||
+|MensajesSynop||
+|Counties||
+|Opcionesmapasintxxnet||
+|Opcxvariabautom||
+|DataSources||
+|Recepdefs||
+|Recepsdatos||
+|Recepsping||
+|Hydrregions||
+|subbasins||
+|synopcrexdatos||
+|synopcrexplant||
+|TransfTables||
+|Tablaswebconst||
+|Tablaswebdef||
+|tipoEstacionVariable||
+|Transftp||
+|Transmchamch||
+|Units||
+|users||
+|typeusers||
+|validdata||
+|Valsvariabaut||
+|Variabautomatv||
+|Variabautomaxfecha||
+|VariabDeriv2||
+|VariabDeriv3||
+|Variables||
+|Variablestransf||
+|VerifCerca||
+|Verific||
+|Webbitacoraproc||
+|Webcontadores||
+|ZonasAreas||
+
+#### MIDAS
+
+MIDAS contains over 100 tables, the SQL DDL has been made available but has not yet been uploaded. The first 15 tables are described below.
+
+| Table names | Description |
+|-------------|-------------|
+| acquisitions_log | acquisitions_log IS 'Records recent data acquistions (ingestion) into the database |
+| app_error_messages ||
+| background_value | Contains NWP forecast model hourly background values, and MetDB time of receipt, for UK land and marine based automatic weather stations |
+| british_summer_time | Contains start and end dates for British Summer Time |
+| calendar_event | Special events (e.g. Wimbeldon, Easter, etc.) and their start and end dates |
+| calendar_event_place | Resolves the many-to-many relationship between Calendar_Event (e.g. British Grand Prix) and the Places (e.g. Silverstone) where they occur |
+| calendar_event_type | Defines and constrains the allowable values of calendar_event_type |
+| calendar_weather_event | Resolves the many-to-many relationship between Calendar_Event (e.g. British Grand Prix) and notable Weather_Events |
+| cdl_quality | Created for denormalised data from weather hourly obs, source and background values. Only original obs are stored |
+| climate_area | Manages climate regions within the UK, other than Country and County |
+| climate_area_place | Resolves the many-to-many relationship between Climate_Area and Place (i.e. gazeteer entry). The table will be used to record Places occurring within a defined Climate_Area |
+| climate_area_post_code | Resolves the many-to-many relationship between Climate_Area and Post_Code.  The table will be used to record Post_Codes occurring within a defined Climate_Area |
+| climate_area_statistics | Contains monthly areal statistics against regions |
+| climate_area_type | Defines and constrains the allowable values for climate_area_type |
+| climate_geographic_area | Resolves the many-to-many relationship between a climate area and a geographic area (e.g county) |
+| ... | ... |
