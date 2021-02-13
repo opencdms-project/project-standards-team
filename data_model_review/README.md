@@ -70,7 +70,21 @@ In addition, further work is being undertaken by the OpenCDMS Reference Implemen
 [#10](https://github.com/opencdms/opencdms-data-model/issues/10) discussion of normalization, optimization for common scenarios and analysis that requires "tidy data"
 <!-- 3rd normal form? -->
 
+### Ingestion
+
+At the time of ingestion, Climsoft temporary tables utilise the element, observation and value model approaches and later transfer these to a single `observationfinal` table that follows the value model approach.
+
+- Example element model (key entry - multiple times)
+- Example observation model (key entry - multiple elements)
+- Example value model (AWS - single time, single element value)
+
+### Utilization
+
+Data arrangement is important for data processing and analysis.
+
 ([Wickham 2014](#wickham_2014))
+
+An simple example would be the creation of a windrose plot where, for each time and location, both wind speed and wind direction are needed. If the data is arranged as per the observation model as "tidy data" then the analysis is more straight-forward for the user.
 
 ## Date period
 
@@ -125,8 +139,16 @@ Top-down RI data model design begins with conceptual data model defining what th
 
 ### Hypertables
 
+MCH makes use of manual partitioning by creating a separate observations table for each element. All data is still held in the same database instance, but split into separate tables. For some installations this may have performance benefits due to the reduction in index size in each table, which in turn results in improved search performance.
+
+However, in a time-series databases where indexing through time is essential, only partitioning the data into a relative small number of different variables would not be as effective as using a solution that partitions based on observation time (and optionally other values).
+
+
 ![Hypertable](https://raw.githubusercontent.com/opencdms/opencdms-data-model/master/data_model_review/images/timescaledb_hypertable_chunk.png)
 *Figure:* TimescaleDB uses the "hypertable" abstraction as a virtual view of many individual tables holding the data, called chunks.
+
+Like database sharding, hypertable partitioning allows the database to scale-out across multiple nodes.
+<!-- however, also allows elasticity, reordering, tiering, ... https://blog.timescale.com/blog/building-a-distributed-time-series-database-on-postgresql/ -->
 
 ### Domain Driven Design
 
