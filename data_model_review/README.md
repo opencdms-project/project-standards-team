@@ -1,6 +1,19 @@
     Climate Data Management Systems
 # Data Model Review: OpenCDMS Focus Systems
 
+<!--
+The people below have contributed to the content of the document through discussions in GitHub issue comments
+See: https://github.com/opencdms/opencdms-data-model/issues
+-->
+
+[Ian Edwards](https://github.com/isedwards),
+[Jose Guijarro](https://github.com/jaggh),
+[Dan Hollis](https://github.com/DanHollis),
+[Steve Palmer](https://github.com/Steve-Palmer),
+[Eduardo Porras](https://github.com/eporrasc),
+[Martin Schweitzer](https://github.com/martinschweitzer),
+[Denis Stuber](https://github.com/denisstuber)
+
 ## Introduction
 
 Historically, a Climate Data Management System (CDMS) has been defined as "an integrated computer-based system that facilitates the effective archival, management, analysis, delivery and utilization of a wide range of integrated climate data" ([WMO 2014](#wmo_2014)).
@@ -75,11 +88,30 @@ In addition, further work is being undertaken by the OpenCDMS Reference Implemen
 
 Data can arrive in may formats. Climsoft 4 has temporary tables that are used during the ingestion of data in Element, Observation and Value Model formats. In the case of Climsoft, these are later transfered to a single `observationfinal` table that follows the Value model approach.
 
-- Example element model (key entry - multiple times)
-- Example observation model (key entry - multiple elements)
-- Example value model (AWS - single time, single element value)
+![Climsoft Element Model Example](https://raw.githubusercontent.com/opencdms/opencdms-data-model/master/data_model_review/images/climsoft4_form_daily2.png)\
+*Figure:* Climsoft 4 Daily Key Entry form stores data for a single element at multiple times in a temporary table following the Element Model approach
 
-Therefore, even in order to achieve full support just for Climsoft 4, all model types must be supported.
+![Climsoft Observation Model Example](https://raw.githubusercontent.com/opencdms/opencdms-data-model/master/data_model_review/images/climsoft4_form_synop_ra1.png)\
+*Figure:* Climsoft 4 Synoptic Key Entry form stores data for multiple element for a single time in a temporary table following the Observation Model approach
+
+```sql
+CREATE TABLE IF NOT EXISTS `aws_rwanda1` (
+  `Cols` int(11) DEFAULT '0',
+  `Element_abbreviation` varchar(50) DEFAULT NULL,
+  `Element_Name` varchar(50) DEFAULT NULL,
+  `Element_Details` varchar(50) DEFAULT NULL,
+  `Climsoft_Element` varchar(6) DEFAULT NULL,
+  `Bufr_Element` varchar(6) DEFAULT NULL,
+  `unit` varchar(15) DEFAULT NULL,
+  `lower_limit` varchar(50) DEFAULT NULL,
+  `upper_limit` varchar(50) DEFAULT NULL,
+  `obsv` varchar(50) DEFAULT NULL,
+  KEY `identification` (`Element_Name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+```
+*Figure:* Example SQL Data Definition Language (DDL) for a temporary database table used to ingest automatic weather station data following the Value Model approach
+
+The figures above illustrate that, in order to achieve full read support for existing Climsoft 4 installations, all model types must be supported.
 
 ### Utilization
 
