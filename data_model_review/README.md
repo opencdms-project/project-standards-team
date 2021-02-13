@@ -23,7 +23,7 @@ The WMO Guidelines on climate data management ([WMO 2007](#wmo_2007)) establish 
 
 The following summaries are taken from ([WMO 2007](#wmo_2007)).
 
-### Element Model
+#### Element Model
 
 | Station’s ID | Month/Year | Element | Value day 1 | Value day 2 | Value day 3 | Value day 4 | Value day 5 | … | … | Value day 31 |
 |--------------|------------|---------|-------------|-------------|-------------|-------------|-------------|---|---|--------------|
@@ -34,7 +34,7 @@ The following summaries are taken from ([WMO 2007](#wmo_2007)).
 **Advantages:** It is easy to add new elements; the data model remains the same even if a new element is added.\
 **Disadvantages:** Performance for real-time applications may be poor; many operations on the database can be more complex than would otherwise be the case.
 
-### Observation Model
+#### Observation Model
 
 | Station’s ID | Day/Month/Year | Tmin | Tmax | Rain | Min Humidity | Min MSL Pressure | Max Wind Speed | … | … | Max Wind Direction |
 |--------------|----------------|------|------|------|--------------|------------------|----------------|---|---|--------------------|
@@ -44,7 +44,7 @@ The following summaries are taken from ([WMO 2007](#wmo_2007)).
 **Advantages:** High performance for real-time applications; optimisation of data storage.\
 **Disadvantages:** Need to update the table structure if a new element that has not been included during the database design stage has to be added.
 
-### Value Model
+#### Value Model
 
 | Station’s ID | Time       |Element | Value |
 |--------------|------------|--------|-------|
@@ -59,24 +59,27 @@ The following summaries are taken from ([WMO 2007](#wmo_2007)).
 
 The `opencdms-data-model` repository currently contains database schemas and documentation for CliDE, Climsoft, MCH and MIDAS. Documentation is also available for BDCLIM.
 
-CliDE, Climsoft and MCH are all CDMS solutions that are used extensively in developing countries. It is essential for the OpenCDMS project to support these projects and their users where possible. MIDAS is a custom CDMS developed and used by the UK Met Office. The system is of particular interest to OpenCDMS because extensive datasets, with rich and complete metadata, are available as open data.
+CliDE, Climsoft and MCH are all free/open-source CDMS solutions that are used extensively in developing countries. It is essential for the OpenCDMS project to support these projects and their users where possible. MIDAS is a custom CDMS developed and used by the UK Met Office. The MIDAS system is of particular interest to OpenCDMS because extensive datasets, with rich and complete metadata, are available as open data.
+
+Support for other systems like CLIDATA that are in widespread use would also be desirable.
+
+- CLIDATA (like CLICOM before it) implements the Element Model
+- CliDE implements the Observation Model
+- Climsoft, MCH and MIDAS implement the Value Model
 
 In addition, further work is being undertaken by the OpenCDMS Reference Implementation Working Group to review a wider range of existing systems.
 
 ## Data ingestion and utilization
 
-> Long vs wide, Key entry forms, Analysis
-
-[#10](https://github.com/opencdms/opencdms-data-model/issues/10) discussion of normalization, optimization for common scenarios and analysis that requires "tidy data"
-<!-- 3rd normal form? -->
-
 ### Ingestion
 
-At the time of ingestion, Climsoft temporary tables utilise the element, observation and value model approaches and later transfer these to a single `observationfinal` table that follows the value model approach.
+Data can arrive in may formats. Climsoft 4 has temporary tables that are used during the ingestion of data in Element, Observation and Value Model formats. In the case of Climsoft, these are later transfered to a single `observationfinal` table that follows the Value model approach.
 
 - Example element model (key entry - multiple times)
 - Example observation model (key entry - multiple elements)
 - Example value model (AWS - single time, single element value)
+
+Therefore, even in order to achieve full support just for Climsoft 4, all model types must be supported.
 
 ### Utilization
 
@@ -96,7 +99,16 @@ An simple example would be the creation of a windrose plot where, for each time 
 
 Composite natural keys vs synthetic keys.
 
-<!--The web: RESTful APIs and Object Relational Mapping (ORM) use of unique (single) keys. -->
+<!--
+Although some CDMSs implement and internal id (e.g. CliDE and MIDAS) others, such as Climsoft and MCH do not. 
+
+Given that data model support composite keys... this avoids potential problems
+
+Implementation must support composite
+may not be unique, in which case most recent our best value will be returned
+
+The web: RESTful APIs and Object Relational Mapping (ORM) use of unique (single) keys.
+-->
 
 ## Dynamic schema modifications
 
@@ -135,6 +147,15 @@ Top-down RI data model design begins with conceptual data model defining what th
   https://www.tutorialspoint.com/dbms/dbms_data_models.htm
   https://www.guru99.com/data-modelling-conceptual-logical.html
   Entity relationship model vs UML
+-->
+
+### Data Model Type
+
+The recommentation for a future data model type requires further discussion.
+<!--
+Long vs wide: [#10](https://github.com/opencdms/opencdms-data-model/issues/10)
+Discussion of normalization, optimization for common scenarios
+3rd normal form?
 -->
 
 ### Hypertables
