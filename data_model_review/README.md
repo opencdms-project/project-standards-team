@@ -3,7 +3,7 @@
 
 <!--
 The people below have contributed to the content of the document through discussions in GitHub issue comments
-See: https://github.com/opencdms/opencdms-data-model/issues
+See: https://github.com/opencdms/reference-implementation/issues
 -->
 
 [Ian Edwards](https://github.com/isedwards),
@@ -16,13 +16,11 @@ See: https://github.com/opencdms/opencdms-data-model/issues
 
 ## Introduction
 
-Historically, a Climate Data Management System (CDMS) has been defined as "an integrated computer-based system that facilitates the effective archival, management, analysis, delivery and utilization of a wide range of integrated climate data" ([WMO 2014](#wmo_2014)).
+Climate Data Management Systems (CDMS) have been defined as "an integrated computer-based system that facilitates the effective archival, management, analysis, delivery and utilization of a wide range of integrated climate data" ([WMO 2014](#wmo_2014)), where "climate" is considered to include a broard range of environmental variables ([Bojinski 2014](#bojinski_2014)).
 
-> Broader discussion to include GCOS definition of climate variables, reference to WMO Earth Systems Approach (WMO 2019), CDMS Specifications and OpenCDMS Reference Implementation.
+The OpenCDMS `reference-implementation` repository contains physical data models for multiple systems. Physical models are defined in SQL Data Definition Language (DDL) for the specific database management systems that has been used for implementation.
 
-The `opencdms-data-model` repository contains physical data models for multiple systems. Physical models are defined in terms of the specific database management systems that has been used for implementation. Database schema described in SQL Data Definition Language (DDL)
-
-This report focuses on existing data models, focusing on systems that are in PRODUCTION USE IN NMHSs and are OpenCDMS focus systems
+This report focuses on existing data models from systems that are in production use in NMHSs and are OpenCDMS focus systems
 
 ## Data model types
 
@@ -70,7 +68,7 @@ The following summaries are taken from ([WMO 2007](#wmo_2007)).
 
 ## Focus systems
 
-The `opencdms-data-model` repository currently contains database schemas and documentation for CliDE, Climsoft, MCH and MIDAS. Documentation is also available for BDCLIM.
+The OpenCDMS `reference-implementation` repository currently contains database schemas and documentation for CliDE, Climsoft, MCH and MIDAS. Documentation is also available for BDCLIM.
 
 CliDE, Climsoft and MCH are all free/open-source CDMS solutions that are used extensively in developing countries. It is essential for the OpenCDMS project to support these projects and their users where possible. MIDAS is a custom CDMS developed and used by the UK Met Office. The MIDAS system is of particular interest to OpenCDMS because extensive datasets, with rich and complete metadata, are available as open data.
 
@@ -88,10 +86,10 @@ In addition, further work is being undertaken by the OpenCDMS Reference Implemen
 
 Data can arrive in may formats. Climsoft 4 has temporary tables that are used during the ingestion of data in Element, Observation and Value Model formats. In the case of Climsoft, these are later transfered to a single `observationfinal` table that follows the Value model approach.
 
-![Climsoft Element Model Example](https://raw.githubusercontent.com/opencdms/opencdms-data-model/master/data_model_review/images/climsoft4_form_daily2.png)\
+![Climsoft Element Model Example](https://raw.githubusercontent.com/opencdms/reference-implementation/master/data_model_review/images/climsoft4_form_daily2.png)\
 *Figure:* Climsoft 4 Daily Key Entry form stores data for a single element at multiple times in a temporary table following the Element Model approach
 
-![Climsoft Observation Model Example](https://raw.githubusercontent.com/opencdms/opencdms-data-model/master/data_model_review/images/climsoft4_form_synop_ra1.png)\
+![Climsoft Observation Model Example](https://raw.githubusercontent.com/opencdms/reference-implementation/master/data_model_review/images/climsoft4_form_synop_ra1.png)\
 *Figure:* Climsoft 4 Synoptic Key Entry form stores data for multiple element for a single time in a temporary table following the Observation Model approach
 
 ```sql
@@ -123,13 +121,13 @@ An simple example would be the creation of a windrose plot where, for each time 
 
 ## Date period <!-- and partial dates-->
 
-[#11](https://github.com/opencdms/opencdms-data-model/issues/11)
+[#11](https://github.com/opencdms/reference-implementation/issues/11)
 
 
 
 ## Primary keys and indexing 
 
-[#9](https://github.com/opencdms/opencdms-data-model/issues/9)
+[#9](https://github.com/opencdms/reference-implementation/issues/9)
 
 Composite natural keys vs synthetic keys.
 
@@ -146,7 +144,7 @@ The web: RESTful APIs and Object Relational Mapping (ORM) use of unique (single)
 
 ## Dynamic schema modifications
 
-[#7](https://github.com/opencdms/opencdms-data-model/issues/7)
+[#7](https://github.com/opencdms/reference-implementation/issues/7)
 
 MCH allows variations in the database definition. Example include:
 
@@ -155,7 +153,7 @@ b) Creation of a set of new database tables for each new parameter that is added
 
 ## Interoperability
 
-![Mappings](https://raw.githubusercontent.com/opencdms/opencdms-data-model/master/data_model_review/images/field_mappings.png)
+![Mappings](https://raw.githubusercontent.com/opencdms/reference-implementation/master/data_model_review/images/field_mappings.png)
 *Figure:* Illustration of the process of achieving interoperability among supported systems
 
 The definition and use of "Station Name" varies between solutions and the formal definition of "station/platform name" existing in the WIGOS metadata standard.
@@ -187,7 +185,7 @@ Top-down RI data model design begins with conceptual data model defining what th
 
 The recommentation for a future data model type requires further discussion.
 <!--
-Long vs wide: [#10](https://github.com/opencdms/opencdms-data-model/issues/10)
+Long vs wide: [#10](https://github.com/opencdms/reference-implementation/issues/10)
 Discussion of normalization, optimization for common scenarios
 3rd normal form?
 -->
@@ -199,7 +197,7 @@ MCH makes use of manual partitioning by creating a separate observations table f
 However, in a time-series databases where indexing through time is essential, only partitioning the data into a relative small number of different variables would not be as effective as using a solution that partitions based on observation time (and optionally other values).
 
 
-![Hypertable](https://raw.githubusercontent.com/opencdms/opencdms-data-model/master/data_model_review/images/timescaledb_hypertable_chunk.png)
+![Hypertable](https://raw.githubusercontent.com/opencdms/reference-implementation/master/data_model_review/images/timescaledb_hypertable_chunk.png)
 *Figure:* TimescaleDB uses the "hypertable" abstraction as a virtual view of many individual tables holding the data, called chunks.
 
 Like database sharding, hypertable partitioning allows the database to scale-out across multiple nodes.
@@ -218,8 +216,9 @@ Before making final recommendations for next generation climate data models, we 
 
 ## References
 
+<span id="bojinski_2014">[Bojinski, S (2014)](https://journals.ametsoc.org/view/journals/bams/95/9/bams-d-13-00047.1.xml) The Concept of Essential Climate Variables in Support of Climate Research, Applications, and Policy, *Bulletin of the American Meteorological Society, 95*(9), 1431-1443.</span>\
+<span id="wickham_2014">[Wickham, H (2014)](https://www.jstatsoft.org/article/view/v059i10) Tidy Data. *Journal of Statistical Software 59*(10)</span>\
 <span id="wmo_2007">[WMO (2007)](https://library.wmo.int/index.php?lvl=notice_display&id=16656) Guidelines on climate data management. *WMO/TD- No. 1376*. WMO Geneva</span>\
-<span id="wickham_2014">[Wickham, Hadley (2014)](https://www.jstatsoft.org/article/view/v059i10) Tidy Data. *Journal of Statistical Software 59*(10)</span>\
 <span id="wmo_2014">[WMO (2014)](https://library.wmo.int/index.php?lvl=notice_display&id=16300) Climate Data Management System Specifications. *WMO-No. 1131*. WMO Geneva</span>\
 <span id="wmo_2019">[WMO (2019)](https://library.wmo.int/?lvl=notice_display&id=21440) World Meteorological Congress. Abridged Final Report of the Eighteenth Session. *WMO-No. 1236, res. 22 p88*. WMO Geneva</span>
 
