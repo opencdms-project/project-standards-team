@@ -20,7 +20,7 @@ Climate Data Management Systems (CDMS) have been defined as "an integrated compu
 
 The OpenCDMS `reference-implementation` repository contains physical data models for multiple systems. Physical models are defined in SQL Data Definition Language (DDL) for the specific database management systems that has been used for implementation.
 
-This report focuses on existing data models from systems that are in production use in NMHSs and are OpenCDMS focus systems
+This report considers data models from existing systems that are in production use in NMHSs and are currently OpenCDMS focus systems.
 
 ## Data model types
 
@@ -70,13 +70,13 @@ The following summaries are taken from ([WMO 2007](#wmo_2007)).
 
 The OpenCDMS `reference-implementation` repository currently contains database schemas and documentation for CliDE, Climsoft, MCH and MIDAS. Documentation is also available for BDCLIM.
 
-CliDE, Climsoft and MCH are all free/open-source CDMS solutions that are used extensively in developing countries. It is essential for the OpenCDMS project to support these projects and their users where possible. MIDAS is a custom CDMS developed and used by the UK Met Office. The MIDAS system is of particular interest to OpenCDMS because extensive datasets, with rich and complete metadata, are available as open data.
+CliDE, Climsoft and MCH are all free/open-source CDMS solutions that are used extensively in developing countries. It is essential for the OpenCDMS project to support these projects and their users where possible. MIDAS is a bespoke CDMS developed and used by the UK Met Office. The MIDAS system is of particular interest to OpenCDMS because extensive datasets, with rich and complete metadata, are available as open data.
 
 Support for other systems like CLIDATA that are in widespread use would also be desirable.
 
 - CLIDATA (like CLICOM before it) implements the Element Model
-- CliDE implements the Observation Model
-- Climsoft, MCH and MIDAS implement the Value Model
+- CliDE predominently implements the Observation Model
+- Climsoft, MCH and MIDAS predominently implement the Value Model
 
 In addition, further work is being undertaken by the OpenCDMS Reference Implementation Working Group to review a wider range of existing systems.
 
@@ -109,15 +109,20 @@ CREATE TABLE IF NOT EXISTS `aws_rwanda1` (
 ```
 *Figure:* Example SQL Data Definition Language (DDL) for a temporary database table used to ingest automatic weather station data following the Value Model approach
 
-The figures above illustrate that, in order to achieve full read support for existing Climsoft 4 installations, all model types must be supported.
+The figures above illustrate that, in order to achieve full read support for existing Climsoft 4 installations alone, all model types must be supported.
+
+Other systems, including CliDE, also implement a mix of data model types[⬞](https://github.com/opencdms/reference-implementation/blob/33a4b7d5b999b6257478d06bfa9e59db211b5d18/clide/README.md#readme).
 
 ### Utilization
 
-Data arrangement is important for data processing and analysis.
+Data arrangement is important for data processing and analysis. "Wide", or "unstacked", data is presented with each different data variable in a separate column (comparible to Observation Model). "Narrow", "stacked", or "long" data is presented with one column containing all the values and another column listing the context of the value (comparible to Value Model).
 
-([Wickham 2014](#wickham_2014))
+> Many statistical and data processing systems have functions to convert between these two presentations, for instance the R programming language has several packages such as the tidyr package. The pandas package in Python implements this operation as "melt" function which converts a wide table to a narrow one. The process of converting a narrow table to wide table is generally referred to as "pivoting" in the context of data transformations. The "pandas" python package provides a "pivot" method which provides for a narrow to wide transformation.
+-- ["wide and narrow data"](https://en.m.wikipedia.org/wiki/Wide_and_narrow_data)
 
-An simple example would be the creation of a windrose plot where, for each time and location, both wind speed and wind direction are needed. If the data is arranged as per the observation model as "tidy data" then the analysis is more straight-forward for the user.
+The wide arrangement is commonly used for analysis and is often refered to as "tidy data" where each observation, or case, is a row with each variable as a column. See relationship to [Boyce–Codd 3rd normal form](https://en.m.wikipedia.org/wiki/Tidy_data) ([Wickham 2014](#wickham_2014)).
+
+For many queries, where users are selecting across a row, it is simpler to work with "tidy data". Wind is the most evident example of a bidimensional variable which would be easier to analyse if direction and speed were stored in the same table row[⬞](https://github.com/opencdms/reference-implementation/issues/10#issuecomment-667932508). A simple example would be the creation of a windrose plot where, for each time and location, both wind speed and wind direction are needed. If the data is arranged as "tidy data" then the analysis is more straight-forward for the user.
 
 ## Date period <!-- and partial dates-->
 
@@ -169,33 +174,19 @@ filters = {
 
 ## Recommendations
 
--	ongoing research to evaluate approaches – including assessment of components of the WMO CDMS specifications that require provisions to be present within data models (FUTURE)
--	work on a reference implementation data model that incorporates current best practices (FUTURE)
-
-Top-down RI data model design begins with conceptual data model defining what the systems contains, followed by logical data model defining how the system should be implemented (regardless of the specifics of the physical implementation).
-<!--
-  https://en.wikipedia.org/wiki/Data_model#Three_perspectives
-  https://en.wikipedia.org/wiki/Data_model#Entity-relationship_model
-  https://www.tutorialspoint.com/dbms/dbms_data_models.htm
-  https://www.guru99.com/data-modelling-conceptual-logical.html
-  Entity relationship model vs UML
--->
-
 ### Data Model Type
 
+For most initial use cases, speed of retrieval or the space taken should be the major issue when considering which data model type to adopt. If the element list needs to be very flexible, then adopting a Value Model would be more flexible than implementing Element or Observation Models[⬞](https://github.com/opencdms/reference-implementation/issues/10#issuecomment-667896059). For example, in Guatemala, MCH is used to store air quality variables and the data manager is able to easily define new elements such as NOx concentrations, etc[⬞](https://github.com/opencdms/reference-implementation/issues/10#issuecomment-667932508).
+
+For the CDMS Reference Implementation, "read only" Element and Observation Model data model types can be achieved through the use of database views. We're unlikely to be able to retrospectively add views to existing systems that implement the the Value Model data model type. However, the same outcome can be achieved through the use of more complicated queries.
+
 The recommentation for a future data model type requires further discussion.
-<!--
-Long vs wide: [#10](https://github.com/opencdms/reference-implementation/issues/10)
-Discussion of normalization, optimization for common scenarios
-3rd normal form?
--->
 
 #### Hypertables
 
 MCH makes use of manual partitioning by creating a separate observations table for each element. All data is still held in the same database instance, but split into separate tables. For some installations this may have performance benefits due to the reduction in index size in each table, which in turn results in improved search performance. Other systems 
 
 However, in a time-series databases where indexing through time is essential, only partitioning the data into a relative small number of different variables would not be as effective as using a solution that partitions based on observation time (and optionally other values).
-
 
 ![Hypertable](https://raw.githubusercontent.com/opencdms/reference-implementation/master/data_model_review/images/timescaledb_hypertable_chunk.png)
 *Figure:* TimescaleDB uses the "hypertable" abstraction as a virtual view of many individual tables holding the data, called chunks.
@@ -205,14 +196,25 @@ Like database sharding, hypertable partitioning allows the database to scale-out
 
 #### Domain Driven Design
 
-The OpenCDMS Project Technical Team recommend following a Domain Driven Design (DDD) approach to the creation of the Reference Implementation data model to ensure that the terminology used in the Reference Implementation matches the language of the domain.
+The OpenCDMS Project Technical Team suggest following a Domain Driven Design (DDD) approach to the creation of the Reference Implementation data model to ensure that the terminology used in the Reference Implementation matches the language of the domain.
 <!-- https://stackoverflow.com/questions/3835169/uml-domain-modeling/3835214#comment4077822_3835214 -->
 
-## Research Questions
+#### Further research
+
+The OpenCDMS Reference Implementation Working Group recommends further research to evaluate the optimum approach, including completing the assessment of components of the WMO CDMS specifications ([WMO 2014](#wmo_2014)) that require provisions to be present within data models and following other best practice.
+
+The top-down design of the CDMS Reference Implementation data model will begin with a conceptual data model defining what the systems contains, followed by logical data model defining how the system should be implemented (regardless of the specifics of the physical implementation).
+<!--
+  https://en.wikipedia.org/wiki/Data_model#Three_perspectives
+  https://en.wikipedia.org/wiki/Data_model#Entity-relationship_model
+  https://www.tutorialspoint.com/dbms/dbms_data_models.htm
+  https://www.guru99.com/data-modelling-conceptual-logical.html
+  Entity relationship model vs UML
+-->
 
 Before making final recommendations for next generation climate data models, we propose a number of research questions that must be investigated:
-- Flexibility vs efficiency – measure the implication of the transposing data stored in “long format”
-- Time series data retrieval, with and without hypertables (research must already exist)
+- Flexibility vs efficiency – measure the implication of the transposing data stored in Value Model implementations for large data sets that are consistent with data volumns expected over the next 20-30 years.
+- Time series data retrieval, with and without hypertables <!--(research must already exist)-->
 
 ## References
 
