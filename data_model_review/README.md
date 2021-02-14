@@ -128,33 +128,21 @@ For many queries, where users are selecting across a row, it is simpler to work 
 
 [#11](https://github.com/opencdms/reference-implementation/issues/11)
 
-
-
 ## Primary keys and indexing 
 
-[#9](https://github.com/opencdms/reference-implementation/issues/9)
+Unlike MCH and Climsoft, which both use composite natural keys, all tables in the [CliDE database schema](https://github.com/opencdms/datamodel/blob/master/clide/clidedb_schema.sql) contain an `id` synthetic primary key that can uniquely reference each row (e.g. see [obs_daily](https://github.com/opencdms/datamodel/blob/master/clide/obs_daily.md#obs_daily))
 
-Composite natural keys vs synthetic keys.
+Both approaches have merit. However, when users interact with the database (e.g. via a Web API) there is broad agreement that the API should expose 'natural' selectors - i.e. that map onto real world entities and that are discoverable from the API[⬞](https://github.com/opencdms/reference-implementation/issues/9#issuecomment-667962467). Furthermore, since the OpenCDMS APIs will act as an abstraction layer for accessing multiple different systems, these interfaces will have to rely on selectors that all supported systems can implement (i.e. composite keys).
 
-<!--
-Although some CDMSs implement and internal id (e.g. CliDE and MIDAS) others, such as Climsoft and MCH do not. 
-
-Given that data model support composite keys... this avoids potential problems
-
-Implementation must support composite
-may not be unique, in which case most recent our best value will be returned
-
-The web: RESTful APIs and Object Relational Mapping (ORM) use of unique (single) keys.
--->
+Note that composite natural keys may not be unique in systems that store more than one version of an observation. In the version is not selected then the system should be configurable as to which value to return by default (e.g. the original observation, the most recent, our current best value, etc.).
 
 ## Dynamic schema modifications
 
 [#7](https://github.com/opencdms/reference-implementation/issues/7)
 
 MCH allows variations in the database definition. Example include:
-
-a) Support for table and field names in multiple languages (e.g., Spanish and English)
-b) Creation of a set of new database tables for each new parameter that is added
+* Support for table and field names in multiple languages (e.g., Spanish and English)
+* Creation of a set of new database tables for each new variable that is added
 
 ## Interoperability
 
@@ -181,6 +169,11 @@ For most initial use cases, speed of retrieval or the space taken should be the 
 For the CDMS Reference Implementation, "read only" Element and Observation Model data model types can be achieved through the use of database views. We're unlikely to be able to retrospectively add views to existing systems that implement the the Value Model data model type. However, the same outcome can be achieved through the use of more complicated queries.
 
 The recommentation for a future data model type requires further discussion.
+
+<!--
+Further discussion from @Steve-Palmer's comment onwards has yet to be incorporated here:
+https://github.com/opencdms/reference-implementation/issues/10#issuecomment-667945076
+-->
 
 #### Hypertables
 
