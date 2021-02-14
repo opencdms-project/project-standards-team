@@ -1,3 +1,5 @@
+CliDE has a somewhat hybrid design. `obs_subdaily` follows the Element Model but for cloud cover and soil temperatures there are 'subtables' ([#10](https://github.com/opencdms/reference-implementation/issues/10#issuecomment-667896059)).
+
 ## Tables
 
 | Table name | Description |
