@@ -138,9 +138,7 @@ Note that composite natural keys may not be unique in systems that store more th
 
 ## Dynamic schema modifications
 
-[#7](https://github.com/opencdms/reference-implementation/issues/7)
-
-MCH allows variations in the database definition. Example include:
+MCH allows variations in the database definition[⬞](https://github.com/opencdms/reference-implementation/issues/7#issuecomment-655578366). Example include:
 * Support for table and field names in multiple languages (e.g., Spanish and English)
 * Creation of a set of new database tables for each new variable that is added
 
