@@ -66,6 +66,24 @@ The following summaries are taken from ([WMO 2007](#wmo_2007)).
 **Advantages:** It is easy to add new elements, the model is adaptable to a large range of data types.\
 **Disadvantages:** Optimization of data storage will not be done well, so this approach is not suitable for tables with huge amounts of data; also shares the disadvantages of the Element model.
 
+#### Extensible Observation Model vs Collapsed Value Model 
+
+| Station’s ID | Day/Month/Year | Tmin | Tmax | Rain | Min Humidity | Min MSL Pressure | Max Wind Speed | Additional Elements/values |
+|--------------|----------------|------|------|------|--------------|------------------|----------------|----------------------------|
+| 33220        | 01/01/2002     | 24.5 | 33.4 | 0    | 72           | 1015.6           | 2.2            | { [JSONB](https://www.postgresql.org/docs/current/functions-json.html) } |
+| 42500        | 01/01/2003     | 15.2 | 22.3 | 10.2 | 80           | 1013.4           | 3.3            | { JSONB }                  |
+
+... vs ...
+
+| Station’s ID | Time       |Elements/Values |
+|--------------|------------|----------------|
+| 33220        | 01/01/2002 | { Tmin: 23.4, Tmax: 16.3, ... } |
+| 42500        | 01/01/2003 |                |
+| 22222        | 01/01/2003 |                |
+
+**Advantages:** High performance, no longer need to update table structure if a new element is added, improved optimisation
+**Disadvantages:** Not yet tested/evaluated.
+
 ## Focus systems
 
 The OpenCDMS `reference-implementation` repository currently contains database schemas and documentation for CliDE, Climsoft, MCH and MIDAS. Documentation is also available for BDCLIM.
