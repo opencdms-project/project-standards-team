@@ -1,4 +1,6 @@
-This repository contains data models for Climate and Hydrology Data Management Systems related to [OpenCDMS](http://opencdms.org)
+**This repository is the main collaborative space for the OpenCDMS [Data Model Standard Working Group](https://www.opencdms.org/approach/groups/working-group/dms-wg/) (DMS-WG)**
+
+The repository contains data models for Climate and Hydrology Data Management Systems related to [OpenCDMS](http://opencdms.org)
 
 Example [Climsoft](https://github.com/opencdms/datamodel/tree/master/climsoft/v4) and [MCH](https://github.com/opencdms/datamodel/tree/master/mch) database schemas can be found in the directories above.
 
