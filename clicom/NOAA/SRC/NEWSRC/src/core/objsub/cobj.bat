@@ -1,6 +1,0 @@
-echo off
-FL /FPi /Od /c %1.FOR 
-IF ERRORLEVEL 1 GOTO EXIT
-COPY %1.OBJ \CLICOM\SRC\OBJ
-:EXIT
-

@@ -1,6 +1,0 @@
-C
-      READ (15) NUMFLD,(FLDTYPE(I),FLDROW(I),FLDCOL(I),FLENGTH(I)
-     +         ,LOWCASE(I),RANGE(I),LOWLIM(I),HIGHLIM(I),DEFAULT(I)
-     +                ,LOOKUP(I),LKFILE(I),LKFLEN(I),LKFRECFLD(I)
-     +                 ,LKFPOS(I),NOENTRY(I),I=1,NUMFLD) 
-
