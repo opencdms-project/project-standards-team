@@ -3,15 +3,15 @@
 This repository contains data and information for testing OpenCDMS and supported systems.
 
 There are three ways to test OpenCDMS with a database:
-1. Testing with original database technologies (complex)
+1. Testing with original database technologies ([complex](#testing-with-original-database-technologies))
 
     This involves installing a database system like PostgreSQL or MySQL. Information is provided below for installing these systems using Docker.
     
-2. Testing with a single database technology (standard)
+2. Testing with a single database technology ([standard](#testing-with-a-single-database-technology))
 
     The pyopencdms library is capable of recreating each CDMS data model in any of the supported database systems (allowing developers to install and use a single database system like TimescaleDB).
 
-3. Testing with SQLlite / SpatialLite (easy)
+3. Testing with SQLlite / SpatialLite ([easy](#testing-with-sqllite--spatiallite))
 
     The final option does not require you to install any database system and instead uses the lightweight SQLite option.
 
