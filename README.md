@@ -53,6 +53,8 @@ sqlplus  # system / admin
 
 ### Testing with a single database technology
 
+The `pyopencdms` library allows developers to initialise data models for any of the supported systems in any of the supported database systems (allowing developers to install and use a single database system). Using a different underlying database technology will most likely prevent you from using SQL to perform operations like restore commands, but otherwise interaction can be achieved through the `pyopencmds` Python API.
 
 ### Testing with SQLlite / SpatialLite
 
+When automated unit tests run, a temporary in-memory SQLite database is used. Developers do not need to install any database software.
