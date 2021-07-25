@@ -35,11 +35,11 @@ Note: Docker hub has the official mysql repository (debian) and an additional my
 
 | Database    | Running a container |
 |-------------|---------------------|
-| TimescaleDB | `docker run --name timescaledb -p 5432:5430 -e POSTGRES_PASSWORD=admin -d timescale/timescaledb-postgis:latest-pg12` |
-| PostgreSQL  | `docker run --name oracle-xe -p 1521:1521 -e ORACLE_PWD=admin opencdms/oracle:18.4.0-xe` |
-| MySQL 8     | `docker run --name mysql51 -p 3307:3306 -e MYSQL_ROOT_PASSWORD=admin -d opencdms/mysql:5.1.73` |
-| MySQL 5.1   | `docker run --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=admin -d postgres:13` |
-| Oracle      | `docker run --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=admin -d mysql:8` |
+| TimescaleDB | `docker run --name timescaledb -p 5430:5430 -e POSTGRES_PASSWORD=admin -d timescale/timescaledb-postgis:latest-pg12` |
+| PostgreSQL  | `docker run --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=admin -d postgres:13` |
+| MySQL 8     | `docker run --name mysql8 -p 3306:3306 -e MYSQL_ROOT_PASSWORD=admin -d mysql:8` |
+| MySQL 5.1   | `docker run --name mysql51 -p 3307:3306 -e MYSQL_ROOT_PASSWORD=admin -d opencdms/mysql:5.1.73` |
+| Oracle      | `docker run --name oracle-xe -p 1521:1521 -e ORACLE_PWD=admin opencdms/oracle:18.4.0-xe` |
 
 Nuke option: `docker rm local-mysql`
 
