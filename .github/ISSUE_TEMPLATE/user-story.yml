@@ -16,6 +16,15 @@ body:
       value: "As a (CDMS user type), I want to (do something) so that (goal)."
     validations:
       required: true
+  - type: textarea
+    id: lineage
+    attributes:
+      label: Lineage
+      description: Where this comes from?
+      placeholder: and what changes have been made!
+      value: "Originator and subsequent editors"
+    validations:
+      required: true      
   - type: input
     id: priority
     attributes:
