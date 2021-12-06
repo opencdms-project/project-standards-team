@@ -1,4 +1,4 @@
-**This repository is the main collaborative space for the OpenCDMS [Data Model Standard Working Group](https://www.opencdms.org/approach/groups/working-group/dms-wg/) (DMS-WG)**
+**This repository is the main collaborative space for the OpenCDMS Project Standards team (PST)**
 
 Information on other data models can be found below
 - <span title="WMO Integrated Global Observing System">[WIGOS](https://www.wmo.int/pages/prog/www/wigos/index_en.html)</span>
